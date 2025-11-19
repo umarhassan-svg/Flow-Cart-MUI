@@ -1,6 +1,8 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // src/services/users.service.ts
 import api from "./api/axios";
 import type { User } from "./auth.service";
+
 /**
  * Generic paginated response from backend
  */
@@ -19,12 +21,14 @@ export interface CreateUserPayload {
   email: string;
   password?: string; // server-side default exists
   roles?: string[];
+  permissions?: string[]; // optional direct user permissions
 }
 
 export interface UpdateUserPayload {
   name?: string;
   email?: string;
   roles?: string[];
+  permissions?: string[];
 }
 
 /**
@@ -34,6 +38,19 @@ export interface Role {
   id: string;
   name: string;
   pages: string[];
+  permissions?: string[]; // backend supports role permissions
+}
+
+/**
+ * Helper to extract server error message (if present)
+ */
+function extractErrorMessage(err: unknown, fallback = "Request failed") {
+  const anyErr = err as any;
+  return (
+    anyErr?.response?.data?.error ||
+    anyErr?.message ||
+    fallback
+  );
 }
 
 /**
@@ -50,14 +67,35 @@ const usersService = {
       const resp = await api.get<PaginatedResponse<User>>("/api/users", { params });
       return resp.data;
     } catch (err: unknown) {
-      if (err instanceof Error) {
-        // Handle the error
-        const msg = err?.message || "Failed to fetch users";
-        throw new Error(msg);
-      } else {
-        // Handle other types of errors
+      throw new Error(extractErrorMessage(err, "Failed to fetch users"));
+    }
+  },
+
+  async getUser(id: string): Promise<User> {
+    try {
+      // Preferred: try single-user endpoint (add to backend if missing)
+      const resp = await api.get<{ user?: User; id?: string }>(`/api/users/${id}`);
+      // If backend returns { user: ... } or the user directly, handle both.
+      // Many simple APIs return the user object directly in resp.data
+      const data = resp.data;
+      if (data && typeof data === "object") {
+        if (data.user) return data.user as User;
+        // If server returned plain user object:
+        if (data.id) return data as User;
       }
-      throw new Error("Failed to fetch users"); // Throw an error if an error occurs
+      // fall back to treating resp.data as the user
+      return data as User;
+    } catch (err: unknown) {
+      // If single-user route doesn't exist, fall back to search in list (best-effort)
+      try {
+        const list = await this.getUsers({ page: 1, limit: 1000, search: "" });
+        const found = list.data.find((u) => u.id === id);
+        if (found) return found;
+      } catch (e) {
+        // ignore fallback errors
+        console.error(e);
+      }
+      throw new Error(extractErrorMessage(err, "Failed to fetch user"));
     }
   },
 
@@ -66,14 +104,7 @@ const usersService = {
       const resp = await api.post<User>("/api/users", payload);
       return resp.data;
     } catch (err: unknown) {
-      if (err instanceof Error) {
-        // Handle the error
-        const msg = err?.message || "Failed to create user";
-        throw new Error(msg);
-      } else {
-        // Handle other types of errors
-      }
-      throw new Error("Failed to create user"); // Throw an error if an error occurs
+      throw new Error(extractErrorMessage(err, "Failed to create user"));
     }
   },
 
@@ -82,14 +113,7 @@ const usersService = {
       const resp = await api.put<User>(`/api/users/${id}`, payload);
       return resp.data;
     } catch (err: unknown) {
-      if (err instanceof Error) {
-        // Handle the error
-        const msg = err?.message || "Failed to update user";
-        throw new Error(msg);
-      } else {
-        // Handle other types of errors
-      }
-      throw new Error("Failed to update user"); // Throw an error if an error occurs
+      throw new Error(extractErrorMessage(err, "Failed to update user"));
     }
   },
 
@@ -98,14 +122,7 @@ const usersService = {
       const resp = await api.delete<{ deleted: User }>(`/api/users/${id}`);
       return resp.data.deleted;
     } catch (err: unknown) {
-      if (err instanceof Error) {
-        // Handle the error
-        const msg = err?.message || "Failed to delete user";
-        throw new Error(msg);
-      } else {
-        // Handle other types of errors
-      }
-      throw new Error("Failed to delete user"); // Throw an error if an error occurs
+      throw new Error(extractErrorMessage(err, "Failed to delete user"));
     }
   },
 
@@ -114,48 +131,25 @@ const usersService = {
       const resp = await api.get<Role[]>("/api/roles");
       return resp.data;
     } catch (err: unknown) {
-      if (err instanceof Error) {
-        // Handle the error
-        const msg = err?.message || "Failed to fetch roles";
-        throw new Error(msg);
-      } else {
-        // Handle other types of errors
-      }
-      throw new Error("Failed to fetch roles"); // Throw an error if an error occurs
+      throw new Error(extractErrorMessage(err, "Failed to fetch roles"));
     }
   },
 
-  async createRole(payload: { name: string; pages?: string[] }): Promise<Role> {
+  async createRole(payload: { name: string; pages?: string[]; permissions?: string[] }): Promise<Role> {
     try {
       const resp = await api.post<Role>("/api/roles", payload);
       return resp.data;
     } catch (err: unknown) {
-      if (err instanceof Error) {
-        // Handle the error
-        const msg = err?.message || "Failed to create role";
-        throw new Error(msg);
-      } else {
-        // Handle other types of errors
-      }
-      throw new Error("Failed to create role"); // Throw an error if an error occurs
+      throw new Error(extractErrorMessage(err, "Failed to create role"));
     }
   },
 
-  async updateRole(id: string, payload: { name?: string; pages?: string[] }): Promise<Role> {
+  async updateRole(id: string, payload: { name?: string; pages?: string[]; permissions?: string[] }): Promise<Role> {
     try {
       const resp = await api.put<Role>(`/api/roles/${id}`, payload);
       return resp.data;
     } catch (err: unknown) {
-
-       if (err instanceof Error) {
-        // Handle the error
-        const msg = err?.message || "Failed to create role";
-        throw new Error(msg);
-      } else {
-        // Handle other types of errors
-      }
-      throw new Error("Failed to create role"); // Throw an error if an error occurs
-
+      throw new Error(extractErrorMessage(err, "Failed to update role"));
     }
   },
 
@@ -164,14 +158,7 @@ const usersService = {
       const resp = await api.delete<{ deleted: Role }>(`/api/roles/${id}`);
       return resp.data.deleted;
     } catch (err: unknown) {
-       if (err instanceof Error) {
-        // Handle the error
-        const msg = err?.message || "Failed to create role";
-        throw new Error(msg);
-      } else {
-        // Handle other types of errors
-      }
-      throw new Error("Failed to create role"); // Throw an error if an error occurs
+      throw new Error(extractErrorMessage(err, "Failed to delete role"));
     }
   }
 };

@@ -3,7 +3,8 @@ import React from "react";
 import { Box, CssBaseline } from "@mui/material";
 import Navbar from "../Navbar/Navbar";
 import SideBar from "../Sidebar/SideBar";
-
+import CartDrawer from "../CartDrawer/CartDrawer";
+import { useCart } from "../../context/CartContext";
 type Props = {
   children?: React.ReactNode;
 };
@@ -18,13 +19,12 @@ const LayoutMain: React.FC<Props> = ({ children }) => {
 
   const toggleCart = () => setCartOpen((s) => !s);
   const closeCart = () => setCartOpen(false);
+  const { totals } = useCart();
 
   // inner "card" styles: transparent on xs so there is no visible white band
   const innerSx = {
     bgcolor: "transparent", // <-- transparent on mobile
-    borderRadius: { xs: 0, sm: 1 },
-    p: { xs: 1.25, sm: 3, md: 4 }, // small padding on xs, larger on sm+
-    boxShadow: { xs: "none", sm: 1 },
+    p: 0, // small padding on xs, larger on sm+
     minHeight: { xs: "auto", md: "60vh" },
     boxSizing: "border-box",
     overflowX: "hidden",
@@ -46,7 +46,7 @@ const LayoutMain: React.FC<Props> = ({ children }) => {
       <Navbar
         onToggleSidebar={toggleSidebar}
         onToggleCart={toggleCart}
-        cartCount={3}
+        cartCount={totals.itemsCount}
       />
 
       {/* spacer below fixed AppBar */}
@@ -55,7 +55,7 @@ const LayoutMain: React.FC<Props> = ({ children }) => {
       {/* overlay sidebar */}
       <SideBar open={sidebarOpen} onClose={closeSidebar} />
 
-      {/* MAIN: remove outer horizontal padding on xs so content is full-bleed */}
+      {/* MAIN: full-bleed on xs, minimal vertical spacing only */}
       <Box
         component="main"
         sx={{
@@ -63,9 +63,8 @@ const LayoutMain: React.FC<Props> = ({ children }) => {
           display: "flex",
           justifyContent: "center",
           width: "100%",
-          // horizontal padding only from sm upward; xs is edge-to-edge
-          px: { xs: 0, sm: 2, md: 3 },
-          py: { xs: 2, sm: 3, md: 4 },
+          px: 0, // no horizontal padding on xs (edge-to-edge)
+          py: { xs: 2, sm: 3, md: 4 }, // small vertical breathing space
           boxSizing: "border-box",
         }}
       >
@@ -74,101 +73,24 @@ const LayoutMain: React.FC<Props> = ({ children }) => {
             width: "100%",
             maxWidth: { xs: "100%", sm: 920, md: 1080, lg: 1200 },
             mx: "auto",
-            my: { xs: 1, sm: 2, md: 3 },
-            boxSizing: "border-box",
-            // guard so nested flex children can shrink
             minWidth: 0,
             overflowX: "hidden",
           }}
         >
-          {/* spacing above content */}
-          <Box sx={{ mb: { xs: 1, sm: 2 } }} />
+          {/* small top spacing only */}
+          <Box sx={{ height: { xs: 8, sm: 12 } }} />
 
-          {/* inner canvas */}
-          <Box sx={innerSx}>
-            <Box
-              sx={{
-                display: "flex",
-                flexDirection: "column",
-                gap: { xs: 1.5, sm: 3 },
-                width: "100%",
-                boxSizing: "border-box",
-                minWidth: 0,
-                "& > *": { maxWidth: "100%", boxSizing: "border-box" },
-              }}
-            >
-              {children}
-            </Box>
-          </Box>
+          {/* the inner canvas / actual content */}
+          <Box sx={innerSx}>{children}</Box>
 
-          {/* bottom spacing */}
-          <Box sx={{ height: { xs: 20, sm: 36 } }} />
+          {/* small bottom spacing only */}
+          <Box sx={{ height: { xs: 16, sm: 24 } }} />
         </Box>
       </Box>
 
       {/* CART overlay */}
-      {cartOpen && (
-        <Box
-          onClick={closeCart}
-          sx={{
-            position: "fixed",
-            inset: 0,
-            zIndex: (t) => t.zIndex.modal,
-            bgcolor: "rgba(0,0,0,0.45)",
-          }}
-        />
-      )}
-
-      {/* CART drawer */}
-      <Box
-        component="aside"
-        sx={{
-          position: "fixed",
-          top: 0,
-          right: 0,
-          height: "100vh",
-          zIndex: (t) => t.zIndex.drawer + 200,
-          transform: cartOpen ? "translateX(0)" : "translateX(100%)",
-          transition: (t) =>
-            t.transitions.create("transform", {
-              duration: t.transitions.duration.standard,
-            }),
-          width: { xs: "85vw", sm: 400, md: 420 },
-          bgcolor: "background.paper",
-          boxShadow: 24,
-          display: "flex",
-          flexDirection: "column",
-        }}
-      >
-        <Box
-          sx={{
-            p: 2,
-            borderBottom: 1,
-            borderColor: "divider",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-          }}
-        >
-          <Box component="span" sx={{ fontWeight: 600 }}>
-            Cart
-          </Box>
-          <Box
-            component="button"
-            onClick={closeCart}
-            sx={{
-              border: 0,
-              background: "transparent",
-              cursor: "pointer",
-              fontSize: 20,
-            }}
-          >
-            ×
-          </Box>
-        </Box>
-
-        <Box sx={{ overflowY: "auto", flex: 1 }}>{/* cart content */}</Box>
-      </Box>
+      {/* cart content */}
+      <CartDrawer onClose={closeCart} open={cartOpen} />
     </Box>
   );
 };

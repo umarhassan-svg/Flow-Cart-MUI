@@ -1,10 +1,7 @@
 // src/router/AppRouter.tsx
-import React from "react";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { Box, CircularProgress } from "@mui/material";
+import { createBrowserRouter, Navigate, Outlet } from "react-router-dom";
 
 import PrivateRoute from "../components/PrivateRoute/PrivateRoute";
-import { useAuth } from "../context/AuthContext";
 
 // Pages
 import Login from "../pages/Login";
@@ -13,92 +10,140 @@ import UsersManagement from "../pages/admin/UsersManagement";
 import RolesManagement from "../pages/admin/RolesManagement";
 import Dashboard from "../pages/admin/Dashboard";
 import ManagerDashboard from "../pages/manager/ManagerDashboard";
+import Home from "../pages/Home";
+import ProductsListPage from "../pages/ProductsListPage";
+import ProductDetailPage from "../pages/ProductDetailPage";
+import CheckOutPage from "../pages/CheckOutPage";
 
 /**
- * Central map of pageKey -> React component + default path
- * Add new entries here when you add pages.
+ * Routes:
+ * - /admin/users           -> list (requires users:read)
+ * - /admin/users/create    -> open ManageUser in "create" mode (requires users:create)
+ * - /admin/users/:id/edit  -> open ManageUser in "edit" mode (requires users:update)
+ *
+ * - /admin/roles           -> list (requires roles:read)
+ * - /admin/roles/create    -> open ManageRole in "create" mode (requires roles:create)
+ * - /admin/roles/:id/edit  -> open ManageRole in "edit" mode (requires roles:update)
  */
-const pageComponentMap: {
-  [pageKey: string]: { path: string; Component: React.ComponentType<any> };
-} = {
-  dashboard: { path: "/admin/dashboard", Component: Dashboard },
-  users: { path: "/admin/users", Component: UsersManagement },
-  roles: { path: "/admin/roles", Component: RolesManagement },
-  m_dashboard: { path: "/manager/dashboard", Component: ManagerDashboard },
-};
 
-const RootRedirect: React.FC = () => {
-  const { isAuthenticated, loading, allowedNavItems, loadingAllowedNav } =
-    useAuth();
+const router = createBrowserRouter([
+  // Public
+  {
+    path: "/login",
+    element: <Login />,
+  },
 
-  // don't redirect while we are resolving auth/allowed pages
-  if (loading || loadingAllowedNav) return null;
+  // All private routes: require authentication
+  {
+    element: <PrivateRoute />, // auth-only wrapper
+    children: [
+      { path: "/home", element: <Home /> },
+      { path: "/products", element: <ProductsListPage /> },
+      { path: "/products/:id", element: <ProductDetailPage /> },
+      { path: "/checkout", element: <CheckOutPage /> },
 
-  if (!isAuthenticated) return <Navigate to="/login" replace />;
+      {
+        // Admin dashboard
+        path: "/admin/dashboard",
+        element: (
+          <PrivateRoute requiredPermissions={["dashboard:view"]}>
+            <Dashboard />
+          </PrivateRoute>
+        ),
+      },
 
-  if (Array.isArray(allowedNavItems) && allowedNavItems.length > 0) {
-    // take first allowed nav item with a path
-    const first = allowedNavItems[0];
-    const target =
-      first.path ?? pageComponentMap[first.key]?.path ?? `/admin/${first.key}`;
-    return <Navigate to={target} replace />;
-  }
+      // Users routing (parent requires read; create/update children protected individually)
+      {
+        path: "/admin/users",
+        element: (
+          // require basic read permission to visit users area
+          <PrivateRoute requiredPermissions={["users:read"]}>
+            <Outlet />
+          </PrivateRoute>
+        ),
+        children: [
+          // index -> list
+          { index: true, element: <UsersManagement /> },
 
-  // fallback
-  return <Navigate to="/admin/dashboard" replace />;
-};
+          // create -> show modal in create mode; require users:create
+          {
+            path: "create",
+            element: (
+              <PrivateRoute requiredPermissions={["users:create"]}>
+                <UsersManagement />
+              </PrivateRoute>
+            ),
+          },
 
-const AppRouter: React.FC = () => {
-  const { loading, loadingAllowedNav } = useAuth();
+          // edit -> show modal in edit mode; require users:update
+          {
+            path: ":id/edit",
+            element: (
+              <PrivateRoute requiredPermissions={["users:update"]}>
+                <UsersManagement />
+              </PrivateRoute>
+            ),
+          },
+        ],
+      },
 
-  // small global loading while auth is resolving (optional)
-  if (loading || loadingAllowedNav) {
-    return (
-      <Box
-        sx={{
-          height: "100vh",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        <CircularProgress />
-      </Box>
-    );
-  }
+      // Roles routing (parent requires read; create/update children protected individually)
+      {
+        path: "/admin/roles",
+        element: (
+          <PrivateRoute requiredPermissions={["roles:read"]}>
+            <Outlet />
+          </PrivateRoute>
+        ),
+        children: [
+          // index -> list
+          { index: true, element: <RolesManagement /> },
 
-  return (
-    <BrowserRouter>
-      <Routes>
-        {/* public */}
-        <Route path="/login" element={<Login />} />
-        <Route path="/unauthorized" element={<Unauthorized />} />
+          // create -> show ManageRole in create mode; require roles:create
+          {
+            path: "create",
+            element: (
+              <PrivateRoute requiredPermissions={["roles:create"]}>
+                <RolesManagement />
+              </PrivateRoute>
+            ),
+          },
 
-        {/* root redirect */}
-        <Route path="/" element={<RootRedirect />} />
+          // edit -> show ManageRole in edit mode; require roles:update
+          {
+            path: ":id/edit",
+            element: (
+              <PrivateRoute requiredPermissions={["roles:update"]}>
+                <RolesManagement />
+              </PrivateRoute>
+            ),
+          },
+        ],
+      },
 
-        {/* Dynamically create guarded routes from the pageComponentMap.
-            Each route still exists in router, but PrivateRoute enforces
-            that users can only access pages they are allowed to (pageKey). */}
-        {Object.entries(pageComponentMap).map(
-          ([pageKey, { path, Component }]) => (
-            <Route
-              key={pageKey}
-              path={path}
-              element={
-                <PrivateRoute pageKey={pageKey}>
-                  <Component />
-                </PrivateRoute>
-              }
-            />
-          )
-        )}
+      // Manager dashboard
+      {
+        path: "/manager/dashboard",
+        element: (
+          <PrivateRoute requiredPermissions={["dashboard:view"]}>
+            <ManagerDashboard />
+          </PrivateRoute>
+        ),
+      },
+    ],
+  },
 
-        {/* fallback: send to root */}
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </BrowserRouter>
-  );
-};
+  // Unauthorized
+  {
+    path: "/unauthorized",
+    element: <Unauthorized />,
+  },
 
-export default AppRouter;
+  // Fallback
+  {
+    path: "*",
+    element: <Navigate to="/home" replace />,
+  },
+]);
+
+export default router;

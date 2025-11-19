@@ -1,7 +1,10 @@
 import { createContext, useContext, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import { ThemeProvider, CssBaseline } from "@mui/material";
-import { lightTheme, darkTheme } from "../theme/theme";
+// import { lightTheme, darkTheme } from "../theme/theme";
+//import { lightTheme, darkTheme } from "../theme/professional";
+import { lightTheme, darkTheme } from "../theme/modern";
+// import { lightTheme, darkTheme } from "../theme/warm-cold";
 
 type ThemeContextType = {
   mode: "light" | "dark";

@@ -87,7 +87,7 @@ export const LoginForm = () => {
 
     try {
       await login(values.email, values.password);
-      navigate("/admin/users");
+      navigate("/home");
     } catch (err: unknown) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       setFormError((err as any).message || "Login failed");

@@ -1,69 +1,60 @@
 import React from "react";
 import { Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
-import { Box, CircularProgress } from "@mui/material";
 
 type PrivateRouteProps = {
-  redirectTo?: string;
+  redirectTo?: string; // where to send unauthenticated users
   children?: React.ReactNode;
-  roles?: string[]; // allowed roles (any match grants access)
-  pageKey?: string; // allowed page key (e.g. "users", "roles", "dashboard")
+  // list of permissions required to view the child route
+  requiredPermissions?: string[];
+  // if true, user must have ALL permissions; if false (default), user must have ANY
+  requireAll?: boolean;
 };
 
 const PrivateRoute: React.FC<PrivateRouteProps> = ({
   redirectTo = "/login",
   children,
-  roles,
-  pageKey,
+  requiredPermissions = [],
+  requireAll = false,
 }) => {
-  const {
-    isAuthenticated,
-    user,
-    loading, // auth/profile loading
-    allowedNavItems, // NavItem[] | null (null = still loading)
-    loadingAllowedNav, // boolean
-  } = useAuth();
-
-  // Wait while authentication/profile and allowed-nav are resolving
-  if (loading || loadingAllowedNav || allowedNavItems === null) {
+  const { isAuthenticated, user, loading } = useAuth();
+  // still validating auth (token/profile) — avoid flicker
+  if (loading) {
     return (
-      <Box
-        sx={{
-          height: "100vh",
+      <div
+        style={{
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
+          padding: 24,
         }}
       >
-        <CircularProgress size={28} />
-      </Box>
+        Loading...
+      </div>
     );
   }
 
-  // 1) require authentication
+  // not logged in -> go to login
   if (!isAuthenticated) {
     return <Navigate to={redirectTo} replace />;
   }
 
-  // 2) role check (if provided)
-  if (roles && roles.length > 0) {
-    const userRoles = user?.roles ?? [];
-    const allowedByRole = roles.some((r) => userRoles.includes(r));
-    if (!allowedByRole) {
+  // permission check
+  if (requiredPermissions && requiredPermissions.length > 0) {
+    const userPerms: string[] =
+      user?.effectivePermissions ?? user?.permissions ?? [];
+    console.log("hasPermissions", userPerms, requiredPermissions);
+
+    const hasPermissions = requireAll
+      ? requiredPermissions.every((p) => userPerms.includes(p))
+      : requiredPermissions.some((p) => userPerms.includes(p));
+
+    if (!hasPermissions) {
       return <Navigate to="/unauthorized" replace />;
     }
   }
 
-  // 3) pageKey check (if provided)
-  if (pageKey) {
-    // allowedNavItems is loaded (maybe empty array)
-    const allowedKeys = new Set((allowedNavItems || []).map((i) => i.key));
-    if (!allowedKeys.has(pageKey)) {
-      return <Navigate to="/unauthorized" replace />;
-    }
-  }
-
-  // 4) render children / nested routes
+  // everything ok -> render
   return children ? <>{children}</> : <Outlet />;
 };
 

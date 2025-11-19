@@ -1,15 +1,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // src/pages/UsersManagement.tsx
 import { useEffect, useState } from "react";
+import { useNavigate, useParams, useMatch } from "react-router-dom";
 import Grid from "@mui/material/Grid";
 import {
   Box,
   Button,
   IconButton,
   InputAdornment,
-  MenuItem,
   Paper,
-  Select,
   Stack,
   TextField,
   Typography,
@@ -18,26 +17,24 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  Chip,
-  InputLabel,
-  useTheme,
-  useMediaQuery,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import CloseIcon from "@mui/icons-material/Close";
-import EditIcon from "@mui/icons-material/Edit";
+import AddIcon from "@mui/icons-material/Add";
 
-import AddNewUser from "../../components/admin/AddNewUser/AddNewUser";
+import ManageUser from "../../components/admin/ManageUser/ManageUser";
 import UsersTable from "../../components/admin/UsersTable/UsersTable";
 
 import usersService from "../../services/users.service";
 import type { User } from "../../services/auth.service";
-import type { Role, UpdateUserPayload } from "../../services/users.service";
+import type { Role } from "../../services/users.service";
 import LayoutMain from "../../components/layout/layoutMain";
 
 const UsersManagement = () => {
-  const theme = useTheme();
-  const isMdUp = useMediaQuery(theme.breakpoints.up("md"));
+  const navigate = useNavigate();
+  const params = useParams<{ id?: string }>();
+  const matchCreate = useMatch("/admin/users/create");
+  const matchEdit = useMatch("/admin/users/:id/edit");
 
   const [users, setUsers] = useState<User[]>([]);
   const [roles, setRoles] = useState<Role[]>([]);
@@ -55,9 +52,12 @@ const UsersManagement = () => {
     message: "",
   });
 
-  // edit dialog
+  // dialog control for ManageUser (still kept, but now route-driven)
+  const [manageOpen, setManageOpen] = useState(false);
+  const [manageMode, setManageMode] = useState<"create" | "edit">("create");
   const [editing, setEditing] = useState<User | null>(null);
-  const [editOpen, setEditOpen] = useState(false);
+
+  // delete dialog
   const [deleteTarget, setDeleteTarget] = useState<User | null>(null);
   const [deleteOpen, setDeleteOpen] = useState(false);
 
@@ -107,33 +107,85 @@ const UsersManagement = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, limit, search]);
 
-  const handleCreated = async () => {
-    await loadUsers();
-    setSnackbar({ open: true, message: "User created" });
-  };
+  // Route-driven modal open/close logic:
+  useEffect(() => {
+    let mounted = true;
 
-  const handleEdit = (u: User) => {
-    setEditing(u);
-    setEditOpen(true);
-  };
-
-  const handleEditSave = async (payload: Partial<User>) => {
-    if (!editing) return;
-    try {
-      const updatePayload: UpdateUserPayload = {
-        name: payload.name,
-        email: payload.email,
-        roles: payload.roles,
-      };
-      await usersService.updateUser(editing.id, updatePayload);
-      await loadUsers();
-      setEditOpen(false);
+    const openCreateModal = () => {
+      if (!mounted) return;
       setEditing(null);
-      setSnackbar({ open: true, message: "User updated" });
-    } catch (err: any) {
-      console.error(err);
-      setSnackbar({ open: true, message: "Update failed" });
+      setManageMode("create");
+      setManageOpen(true);
+    };
+
+    const openEditModal = async (id: string) => {
+      if (!mounted) return;
+      setManageMode("edit");
+      setManageOpen(true);
+
+      // Try find user in currently loaded list first
+      const found = users.find((u) => u.id === id);
+      if (found) {
+        setEditing(found);
+        return;
+      }
+
+      // Otherwise fetch single user (service should support getUser)
+      try {
+        const u = await usersService.getUser(id);
+        if (!mounted) return;
+        setEditing(u);
+      } catch (err: any) {
+        console.error("Failed to load user for edit:", err);
+        // show snackbar and navigate back to list
+        if (mounted) {
+          setSnackbar({ open: true, message: "Failed to load user" });
+          navigate("/admin/users", { replace: true });
+        }
+      }
+    };
+
+    // open/close based on matched routes
+    if (matchCreate) {
+      openCreateModal();
+    } else if (matchEdit && params.id) {
+      openEditModal(params.id);
+    } else {
+      // no create/edit route active -> ensure modal closed and state reset
+      setManageOpen(false);
+      setEditing(null);
+      setManageMode("create");
     }
+
+    return () => {
+      mounted = false;
+    };
+    // include users so edit will pick a freshly loaded user if available
+  }, [matchCreate, matchEdit, params.id, users, navigate]);
+
+  // Handlers now navigate to route (route will open dialog)
+  const openCreate = () => {
+    navigate("/admin/users/create");
+  };
+
+  const openEdit = (u: User) => {
+    navigate(`/admin/users/${u.id}/edit`);
+  };
+
+  const handleManageSaved = async (msg?: string) => {
+    await loadUsers();
+    // close modal by navigating back to list route
+    navigate("/admin/users", { replace: true });
+    setSnackbar({
+      open: true,
+      message:
+        msg || (manageMode === "create" ? "User created" : "User updated"),
+    });
+  };
+
+  const handleManageClose = () => {
+    // close modal by navigating back
+    navigate("/admin/users", { replace: true });
   };
 
   const handleDeleteConfirm = (u: User) => {
@@ -159,32 +211,42 @@ const UsersManagement = () => {
     <LayoutMain>
       <Box p={{ xs: 2, md: 3 }}>
         <Grid container spacing={3}>
-          {/* Page header */}
+          {/* Page header with Add button in upper-right */}
           <Grid size={{ xs: 12 }}>
-            <Typography variant="h5" fontWeight={700}>
-              User Management
-            </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-              Create and manage users. Assign roles and control access to pages.
-            </Typography>
-          </Grid>
+            <Stack
+              direction="row"
+              alignItems="center"
+              justifyContent="space-between"
+            >
+              <Box>
+                <Typography variant="h5" fontWeight={700}>
+                  User Management
+                </Typography>
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  sx={{ mt: 0.5 }}
+                >
+                  Create and manage users. Assign roles and control access to
+                  pages.
+                </Typography>
+              </Box>
 
-          {/* Left column: AddNewUser */}
-          <Grid
-            size={{ xs: 12, md: 4 }}
-            sx={{
-              position: isMdUp ? "sticky" : "relative",
-              top: isMdUp ? { md: "64px", xs: "56px" } : "auto",
-              alignSelf: "flex-start",
-            }}
-          >
-            <Box sx={{ mb: { xs: 2, md: 0 } }}>
-              <AddNewUser roles={roles} onCreated={handleCreated} />
-            </Box>
+              <Box>
+                <Button
+                  variant="contained"
+                  startIcon={<AddIcon />}
+                  onClick={openCreate}
+                  size="small"
+                >
+                  Add user
+                </Button>
+              </Box>
+            </Stack>
           </Grid>
 
           {/* Right column: search + table */}
-          <Grid size={{ xs: 12, md: 8 }}>
+          <Grid size={{ xs: 12 }}>
             <Stack spacing={2}>
               <Paper
                 sx={{
@@ -192,7 +254,6 @@ const UsersManagement = () => {
                   display: "flex",
                   gap: 2,
                   alignItems: "center",
-                  // collapse vertically on very small screens
                   flexDirection: { xs: "column", sm: "row" },
                 }}
               >
@@ -224,7 +285,7 @@ const UsersManagement = () => {
                         </InputAdornment>
                       ) : undefined,
                     }}
-                    sx={{ minWidth: 0 }} // allows flex shrinking
+                    sx={{ minWidth: 0 }}
                   />
                 </Box>
 
@@ -251,7 +312,7 @@ const UsersManagement = () => {
                   setLimit(parseInt(e.target.value, 10));
                   setPage(0);
                 }}
-                onEdit={(u) => handleEdit(u)}
+                onEdit={(u) => openEdit(u)}
                 onDelete={(u) => handleDeleteConfirm(u)}
               />
             </Stack>
@@ -259,95 +320,15 @@ const UsersManagement = () => {
         </Grid>
       </Box>
 
-      {/* Edit dialog */}
-      <Dialog
-        open={editOpen}
-        onClose={() => setEditOpen(false)}
-        fullWidth
-        maxWidth="sm"
-      >
-        <DialogTitle>
-          <Stack direction="row" alignItems="center" spacing={1}>
-            <EditIcon />
-            <span>Edit User</span>
-          </Stack>
-        </DialogTitle>
-
-        <DialogContent dividers>
-          {editing ? (
-            <Grid container spacing={2}>
-              <Grid size={{ xs: 12, sm: 6 }}>
-                <TextField
-                  label="Full name"
-                  size="small"
-                  fullWidth
-                  value={editing.name}
-                  onChange={(e) =>
-                    setEditing({ ...editing, name: e.target.value })
-                  }
-                />
-              </Grid>
-
-              <Grid size={{ xs: 12, sm: 6 }}>
-                <TextField
-                  label="Email"
-                  size="small"
-                  fullWidth
-                  value={editing.email}
-                  onChange={(e) =>
-                    setEditing({ ...editing, email: e.target.value })
-                  }
-                />
-              </Grid>
-
-              <Grid size={{ xs: 12 }}>
-                <InputLabel sx={{ mb: 0.5 }}>Roles</InputLabel>
-                <Select
-                  multiple
-                  fullWidth
-                  size="small"
-                  value={editing.roles}
-                  onChange={(e) => {
-                    const val = e.target.value as string[];
-                    setEditing({ ...editing, roles: val });
-                  }}
-                  renderValue={(selected) => (
-                    <Box sx={{ display: "flex", gap: 0.5, flexWrap: "wrap" }}>
-                      {(selected as string[]).map((r) => (
-                        <Chip key={r} label={r} size="small" />
-                      ))}
-                    </Box>
-                  )}
-                >
-                  {roles.map((r) => (
-                    <MenuItem key={r.id} value={r.name}>
-                      {r.name}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </Grid>
-            </Grid>
-          ) : (
-            <Typography>Loading...</Typography>
-          )}
-        </DialogContent>
-
-        <DialogActions>
-          <Button onClick={() => setEditOpen(false)}>Cancel</Button>
-          <Button
-            variant="contained"
-            onClick={() =>
-              handleEditSave({
-                name: editing?.name,
-                email: editing?.email,
-                roles: editing?.roles,
-              })
-            }
-          >
-            Save
-          </Button>
-        </DialogActions>
-      </Dialog>
+      {/* ManageUser dialog (create / edit) - opened via route */}
+      <ManageUser
+        open={manageOpen}
+        mode={manageMode}
+        roles={roles}
+        initialUser={editing ?? undefined}
+        onClose={handleManageClose}
+        onSaved={() => handleManageSaved()}
+      />
 
       {/* Delete confirmation */}
       <Dialog open={deleteOpen} onClose={() => setDeleteOpen(false)}>

@@ -1,12 +1,13 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // src/pages/RolesManagement.tsx
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
+import { useNavigate, useParams, useMatch } from "react-router-dom";
 import Grid from "@mui/material/Grid";
 import {
   Box,
   Button,
   IconButton,
   InputAdornment,
-  MenuItem,
   Paper,
   Stack,
   TextField,
@@ -16,17 +17,12 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  InputLabel,
-  Select,
-  Chip,
-  useTheme,
-  useMediaQuery,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import CloseIcon from "@mui/icons-material/Close";
-import EditIcon from "@mui/icons-material/Edit";
+import AddIcon from "@mui/icons-material/Add";
 
-import AddNewRole from "../../components/admin/AddNewRole/AddNewRole";
+import ManageRole from "../../components/admin/ManageRole/ManageRole";
 import RolesTable from "../../components/admin/RolesTable/RolesTable";
 
 import rolesService from "../../services/roles.service";
@@ -34,13 +30,15 @@ import type { Role } from "../../services/roles.service";
 import LayoutMain from "../../components/layout/layoutMain";
 
 const RolesManagement: React.FC = () => {
-  const theme = useTheme();
-  const isMdUp = useMediaQuery(theme.breakpoints.up("md"));
+  const navigate = useNavigate();
+  const params = useParams<{ id?: string }>();
+  const matchCreate = useMatch("/admin/roles/create");
+  const matchEdit = useMatch("/admin/roles/:id/edit");
 
   const [roles, setRoles] = useState<Role[]>([]);
   const [loading, setLoading] = useState(false);
 
-  const [page, setPage] = useState(0);
+  const [page, setPage] = useState(0); // zero based
   const [limit, setLimit] = useState(10);
   const [total, setTotal] = useState(0);
 
@@ -52,11 +50,12 @@ const RolesManagement: React.FC = () => {
     message: "",
   });
 
-  // edit dialog state
+  // Route-driven ManageRole dialog state
+  const [manageOpen, setManageOpen] = useState(false);
+  const [manageMode, setManageMode] = useState<"create" | "edit">("create");
   const [editing, setEditing] = useState<Role | null>(null);
-  const [editOpen, setEditOpen] = useState(false);
 
-  // delete state
+  // delete dialog
   const [toDelete, setToDelete] = useState<Role | null>(null);
   const [deleteOpen, setDeleteOpen] = useState(false);
 
@@ -73,13 +72,15 @@ const RolesManagement: React.FC = () => {
     setLoading(true);
     try {
       const list = await rolesService.getRoles();
-      // client-side search & pagination (API returns all roles)
       const filtered = search
         ? list.filter(
             (r) =>
               r.name.toLowerCase().includes(search.toLowerCase()) ||
               (r.pages || []).some((p) =>
                 p.toLowerCase().includes(search.toLowerCase())
+              ) ||
+              (r.permissions || []).some((perm) =>
+                perm.toLowerCase().includes(search.toLowerCase())
               )
           )
         : list;
@@ -89,11 +90,10 @@ const RolesManagement: React.FC = () => {
       setRoles(filtered.slice(start, start + limit));
     } catch (err: unknown) {
       console.error(err);
-      if (err instanceof Error)
-        setSnackbar({
-          open: true,
-          message: err?.message || "Failed to load roles",
-        });
+      setSnackbar({
+        open: true,
+        message: (err as Error)?.message || "Failed to load roles",
+      });
     } finally {
       setLoading(false);
     }
@@ -104,47 +104,84 @@ const RolesManagement: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, limit, search]);
 
+  // Route-driven modal open/close logic (mirrors UsersManagement)
   useEffect(() => {
-    // warm-up load for left panel suggestions (non-blocking)
-    (async () => {
-      try {
-        await rolesService.getRoles();
-      } catch {
-        // ignore
-      }
-    })();
-  }, []);
+    let mounted = true;
 
-  const handleCreated = async () => {
-    setPage(0);
-    await loadRoles();
-    setSnackbar({ open: true, message: "Role created" });
-  };
-
-  const handleEdit = (r: Role) => {
-    setEditing(r);
-    setEditOpen(true);
-  };
-
-  const handleEditSave = async () => {
-    if (!editing) return;
-    try {
-      await rolesService.updateRole(editing.id, {
-        name: editing.name,
-        pages: editing.pages,
-      });
-      setEditOpen(false);
+    const openCreateModal = () => {
+      if (!mounted) return;
       setEditing(null);
-      await loadRoles();
-      setSnackbar({ open: true, message: "Role updated" });
-    } catch (err: unknown) {
-      console.error(err);
-      if (err instanceof Error)
-        setSnackbar({ open: true, message: err?.message || "Update failed" });
+      setManageMode("create");
+      setManageOpen(true);
+    };
+
+    const openEditModal = async (id: string) => {
+      if (!mounted) return;
+      setManageMode("edit");
+      setManageOpen(true);
+
+      // Try find role in currently loaded list first
+      const found = roles.find((r) => r.id === id);
+      if (found) {
+        setEditing(found);
+        return;
+      }
+
+      // Otherwise fetch single role
+      try {
+        const r = await rolesService.getRole(id);
+        if (!mounted) return;
+        setEditing(r);
+      } catch (err: any) {
+        console.error("Failed to load role for edit:", err);
+        if (mounted) {
+          setSnackbar({ open: true, message: "Failed to load role" });
+          navigate("/admin/roles", { replace: true });
+        }
+      }
+    };
+
+    if (matchCreate) {
+      openCreateModal();
+    } else if (matchEdit && params.id) {
+      openEditModal(params.id);
+    } else {
+      // no create/edit route active -> ensure modal closed and state reset
+      setManageOpen(false);
+      setEditing(null);
+      setManageMode("create");
     }
+
+    return () => {
+      mounted = false;
+    };
+  }, [matchCreate, matchEdit, params.id, roles, navigate]);
+
+  // handlers that navigate to route (route opens modal)
+  const openCreate = () => {
+    navigate("/admin/roles/create");
   };
 
-  const confirmDelete = (r: Role) => {
+  const openEdit = (r: Role) => {
+    navigate(`/admin/roles/${r.id}/edit`);
+  };
+
+  const handleManageSaved = async (msg?: string) => {
+    await loadRoles();
+    // close modal by navigating back to list route
+    navigate("/admin/roles", { replace: true });
+    setSnackbar({
+      open: true,
+      message:
+        msg || (manageMode === "create" ? "Role created" : "Role updated"),
+    });
+  };
+
+  const handleManageClose = () => {
+    navigate("/admin/roles", { replace: true });
+  };
+
+  const handleDeleteConfirm = (r: Role) => {
     setToDelete(r);
     setDeleteOpen(true);
   };
@@ -157,10 +194,12 @@ const RolesManagement: React.FC = () => {
       setToDelete(null);
       await loadRoles();
       setSnackbar({ open: true, message: "Role deleted" });
-    } catch (err: unknown) {
+    } catch (err: any) {
       console.error(err);
-      if (err instanceof Error)
-        setSnackbar({ open: true, message: err?.message || "Delete failed" });
+      setSnackbar({
+        open: true,
+        message: (err as Error)?.message || "Delete failed",
+      });
     }
   };
 
@@ -168,32 +207,42 @@ const RolesManagement: React.FC = () => {
     <LayoutMain>
       <Box p={{ xs: 2, md: 3 }}>
         <Grid container spacing={3}>
-          {/* Header */}
+          {/* Page header with Add button in upper-right */}
           <Grid size={{ xs: 12 }}>
-            <Typography variant="h5" fontWeight={700}>
-              Roles Management
-            </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-              Create and manage roles. Assign pages to control access.
-            </Typography>
-          </Grid>
+            <Stack
+              direction="row"
+              alignItems="center"
+              justifyContent="space-between"
+            >
+              <Box>
+                <Typography variant="h5" fontWeight={700}>
+                  Roles Management
+                </Typography>
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  sx={{ mt: 0.5 }}
+                >
+                  Create and manage roles. Assign pages & permissions to control
+                  access.
+                </Typography>
+              </Box>
 
-          {/* Left column: AddNewRole (sticky on md+) */}
-          <Grid
-            size={{ xs: 12, md: 4 }}
-            sx={{
-              position: isMdUp ? "sticky" : "relative",
-              top: isMdUp ? { md: "64px" } : "auto",
-              alignSelf: "flex-start",
-            }}
-          >
-            <Box sx={{ mb: { xs: 2, md: 0 } }}>
-              <AddNewRole onCreated={handleCreated} />
-            </Box>
+              <Box>
+                <Button
+                  variant="contained"
+                  startIcon={<AddIcon />}
+                  onClick={openCreate}
+                  size="small"
+                >
+                  Add role
+                </Button>
+              </Box>
+            </Stack>
           </Grid>
 
           {/* Right column: search + table */}
-          <Grid size={{ xs: 12, md: 8 }}>
+          <Grid size={{ xs: 12 }}>
             <Stack spacing={2}>
               <Paper
                 sx={{
@@ -208,7 +257,7 @@ const RolesManagement: React.FC = () => {
                   <TextField
                     variant="outlined"
                     size="small"
-                    placeholder="Search roles or pages..."
+                    placeholder="Search roles, pages or permissions..."
                     fullWidth
                     value={searchTyping}
                     onChange={(e) => setSearchTyping(e.target.value)}
@@ -241,6 +290,7 @@ const RolesManagement: React.FC = () => {
                     variant="outlined"
                     size="small"
                     onClick={() => loadRoles()}
+                    sx={{ whiteSpace: "nowrap" }}
                   >
                     Refresh
                   </Button>
@@ -258,87 +308,24 @@ const RolesManagement: React.FC = () => {
                   setLimit(parseInt(e.target.value, 10));
                   setPage(0);
                 }}
-                onEdit={(r) => handleEdit(r)}
-                onDelete={(r) => confirmDelete(r)}
+                onEdit={(r) => openEdit(r)}
+                onDelete={(r) => handleDeleteConfirm(r)}
               />
             </Stack>
           </Grid>
         </Grid>
       </Box>
 
-      {/* Edit role dialog */}
-      <Dialog
-        open={editOpen}
-        onClose={() => setEditOpen(false)}
-        fullWidth
-        maxWidth="sm"
-      >
-        <DialogTitle>
-          <Stack direction="row" alignItems="center" spacing={1}>
-            <EditIcon />
-            <span>Edit Role</span>
-          </Stack>
-        </DialogTitle>
+      {/* ManageRole dialog (create / edit) - opened via route */}
+      <ManageRole
+        open={manageOpen}
+        mode={manageMode}
+        initialRole={editing ?? undefined}
+        onClose={handleManageClose}
+        onSaved={() => handleManageSaved()}
+      />
 
-        <DialogContent dividers>
-          {editing ? (
-            <Grid container spacing={2}>
-              <Grid size={{ xs: 12 }}>
-                <TextField
-                  label="Role name"
-                  size="small"
-                  fullWidth
-                  value={editing.name}
-                  onChange={(e) =>
-                    setEditing({ ...editing, name: e.target.value })
-                  }
-                />
-              </Grid>
-
-              <Grid size={{ xs: 12 }}>
-                <InputLabel sx={{ mb: 0.5 }}>Pages</InputLabel>
-                <Select
-                  multiple
-                  fullWidth
-                  size="small"
-                  value={editing.pages}
-                  onChange={(e) => {
-                    const val = e.target.value as string[];
-                    setEditing({ ...editing, pages: val });
-                  }}
-                  renderValue={(selected) => (
-                    <Box sx={{ display: "flex", gap: 0.5, flexWrap: "wrap" }}>
-                      {(selected as string[]).map((r) => (
-                        <Chip key={r} label={r} size="small" />
-                      ))}
-                    </Box>
-                  )}
-                >
-                  {["dashboard", "users", "roles", "products", "orders"].map(
-                    //replace with all pages
-                    (p) => (
-                      <MenuItem key={p} value={p}>
-                        {p}
-                      </MenuItem>
-                    )
-                  )}
-                </Select>
-              </Grid>
-            </Grid>
-          ) : (
-            <Typography>Loading...</Typography>
-          )}
-        </DialogContent>
-
-        <DialogActions>
-          <Button onClick={() => setEditOpen(false)}>Cancel</Button>
-          <Button variant="contained" onClick={handleEditSave}>
-            Save
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-      {/* Delete confirm */}
+      {/* Delete confirmation */}
       <Dialog open={deleteOpen} onClose={() => setDeleteOpen(false)}>
         <DialogTitle>Delete role</DialogTitle>
         <DialogContent dividers>

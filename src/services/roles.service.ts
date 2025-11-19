@@ -1,21 +1,21 @@
 // src/services/roles.service.ts
 import api from "./api/axios";
 
-export type Role = {
+export interface Role {
   id: string;
   name: string;
   pages: string[];
-};
+  permissions?: string[];
+}
 
-export type CreateRolePayload = {
-  name: string;
-  pages?: string[];
-};
-
-export type UpdateRolePayload = {
-  name?: string;
-  pages?: string[];
-};
+/**
+ * Helper to extract server error message (if present)
+ */
+function extractErrorMessage(err: unknown, fallback = "Request failed") {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const anyErr = err as any;
+  return anyErr?.response?.data?.error || anyErr?.message || fallback;
+}
 
 const rolesService = {
   async getRoles(): Promise<Role[]> {
@@ -23,95 +23,61 @@ const rolesService = {
       const resp = await api.get<Role[]>("/api/roles");
       return resp.data;
     } catch (err: unknown) {
-      if (err instanceof Error) {
-        const msg = err?.message || "Failed to load roles";
-        throw new Error(msg);
-      }
-      throw new Error("Failed to load roles");
+      throw new Error(extractErrorMessage(err, "Failed to fetch roles"));
     }
   },
 
-  async getRoleByName(name: string): Promise<Role | undefined> {
-    if (!name) return undefined;
+  async getRole(id: string): Promise<Role> {
     try {
-      const roles = await this.getRoles();
-      return roles.find((r) => r.name === name);
+      // Try single-role endpoint first
+      const resp = await api.get<Role>(`/api/roles/${id}`);
+      return resp.data as Role;
     } catch (err: unknown) {
-      // bubble up as undefined (caller can decide) or rethrow if preferred
-      if (err instanceof Error) console.error("getRoleByName error", err);
-      return undefined;
-    }
-  },
-
-  /**
-   * Return deduplicated list of pages for the provided role name or names.
-   * Input can be a string or an array of strings. Returns [] if no roles or none found.
-   */
-  async getPagesForRoles(roleNames: string | string[]): Promise<string[]> {
-    try {
-      const names = Array.isArray(roleNames)
-        ? roleNames.map((n) => String(n).trim()).filter(Boolean)
-        : [String(roleNames).trim()];
-
-      if (names.length === 0) return [];
-
-      const roles = await this.getRoles();
-      const pagesSet = new Set<string>();
-
-      names.forEach((rName) => {
-        const found = roles.find((r) => r.name === rName);
-        if (found && Array.isArray(found.pages)) {
-          found.pages.forEach((p) => {
-            if (p && typeof p === "string") pagesSet.add(p);
-          });
-        }
-      });
-
-      return Array.from(pagesSet);
-    } catch (err: unknown) {
-      if (err instanceof Error) {
-        const msg = err?.message || "Failed to resolve pages for roles";
-        throw new Error(msg);
+      // Fallback: fetch all roles and find by id
+      try {
+        const list = await this.getRoles();
+        const found = list.find((r) => r.id === id);
+        if (found) return found;
+      } catch {
+        // ignore
       }
-      throw new Error("Failed to resolve pages for roles");
+      throw new Error(extractErrorMessage(err, "Failed to fetch role"));
     }
   },
 
-  async createRole(payload: CreateRolePayload): Promise<Role> {
+  async createRole(payload: { name: string; pages?: string[]; permissions?: string[] }): Promise<Role> {
     try {
       const resp = await api.post<Role>("/api/roles", payload);
       return resp.data;
     } catch (err: unknown) {
-      if (err instanceof Error) {
-        const msg = err?.message || "Failed to create role";
-        throw new Error(msg);
-      }
-      throw new Error("Failed to create role");
+      throw new Error(extractErrorMessage(err, "Failed to create role"));
     }
   },
 
-  async updateRole(id: string, payload: UpdateRolePayload): Promise<Role> {
+  async updateRole(id: string, payload: { name?: string; pages?: string[]; permissions?: string[] }): Promise<Role> {
     try {
       const resp = await api.put<Role>(`/api/roles/${id}`, payload);
       return resp.data;
     } catch (err: unknown) {
-      if (err instanceof Error) {
-        const msg = err?.message || "Failed to update role";
-        throw new Error(msg);
-      }
-      throw new Error("Failed to update role");
+      throw new Error(extractErrorMessage(err, "Failed to update role"));
     }
   },
 
-  async deleteRole(id: string): Promise<void> {
+  async deleteRole(id: string): Promise<Role> {
     try {
-      await api.delete(`/api/roles/${id}`);
+      const resp = await api.delete<{ deleted: Role }>(`/api/roles/${id}`);
+      return resp.data.deleted;
     } catch (err: unknown) {
-      if (err instanceof Error) {
-        const msg = err?.message || "Failed to delete role";
-        throw new Error(msg);
-      }
-      throw new Error("Failed to delete role");
+      throw new Error(extractErrorMessage(err, "Failed to delete role"));
+    }
+  },
+
+  async getPermissions(): Promise<string[]> {
+    try {
+      const resp = await api.get<string[]>("/api/permissions");
+      return resp.data;
+    } catch (err: unknown) {
+      throw new Error(extractErrorMessage(err, "Failed to fetch permissions"));
     }
   },
 };

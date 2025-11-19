@@ -6,8 +6,7 @@ import React, {
   useMemo,
   useState,
 } from "react";
-import authService from "../services/auth.service";
-import type { User } from "../services/auth.service";
+import authService, { type User } from "../services/auth.service";
 import type { ReactNode } from "react";
 import {
   loadNavItemsForCurrentUser,
@@ -21,7 +20,7 @@ type AuthContextType = {
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   refresh: () => Promise<void>;
-  // new: allowed nav items (null = loading, [] = loaded but empty)
+  // allowed nav items (null = loading, [] = loaded but empty)
   allowedNavItems: NavItem[] | null;
   loadingAllowedNav: boolean;
   refreshAllowedNav: () => Promise<void>;
@@ -32,6 +31,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   children,
 }) => {
+  // Initialize user from localStorage (may be null)
   const [user, setUser] = useState<User | null>(() =>
     authService.getCurrentUser()
   );
@@ -61,19 +61,20 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       setLoading(true);
       setLoadingAllowedNav(true);
       try {
-        const profile = await authService.getProfile(); // also updates localStorage
+        const profile = await authService.getProfile(); // will also persist fresh profile
         if (mounted) setUser(profile);
 
-        // load nav items once (uses local user & roles)
+        // load nav items once (uses local user & roles/permissions)
         try {
           const items = await loadNavItemsForCurrentUser();
           if (mounted) setAllowedNavItems(items ?? []);
         } catch (err) {
-          console.error(err);
+          console.error("Failed to load allowed nav:", err);
           if (mounted) setAllowedNavItems([]);
         }
-      } catch {
+      } catch (err) {
         // invalid token -> clear session
+        console.warn("Auth init failed, clearing session:", err);
         authService.logout();
         if (mounted) {
           setUser(null);
@@ -119,7 +120,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       try {
         const items = await loadNavItemsForCurrentUser();
         setAllowedNavItems(items ?? []);
-      } catch {
+      } catch (err) {
+        console.error("Failed to load nav after login:", err);
         setAllowedNavItems([]);
       }
     } finally {
@@ -147,6 +149,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       setUser(profile);
       const items = await loadNavItemsForCurrentUser();
       setAllowedNavItems(items ?? []);
+    } catch (err) {
+      console.error("Failed to refresh profile or nav:", err);
+      // If token invalid, authService.getProfile will throw and get handled by callers
+      // Leave user as-is or clear if you prefer; here we keep user null if profile failed
+      setUser(null);
+      setAllowedNavItems([]);
     } finally {
       setLoading(false);
       setLoadingAllowedNav(false);
