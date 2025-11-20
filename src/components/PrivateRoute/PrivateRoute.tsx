@@ -11,12 +11,12 @@ type PrivateRouteProps = {
   requireAll?: boolean;
 };
 
-const PrivateRoute: React.FC<PrivateRouteProps> = ({
+const PrivateRoute = ({
   redirectTo = "/login",
   children,
   requiredPermissions = [],
   requireAll = false,
-}) => {
+}: PrivateRouteProps) => {
   const { isAuthenticated, user, loading } = useAuth();
   // still validating auth (token/profile) — avoid flicker
   if (loading) {
@@ -43,7 +43,7 @@ const PrivateRoute: React.FC<PrivateRouteProps> = ({
   if (requiredPermissions && requiredPermissions.length > 0) {
     const userPerms: string[] =
       user?.effectivePermissions ?? user?.permissions ?? [];
-    console.log("hasPermissions", userPerms, requiredPermissions);
+    //console.log("hasPermissions", userPerms, requiredPermissions);
 
     const hasPermissions = requireAll
       ? requiredPermissions.every((p) => userPerms.includes(p))

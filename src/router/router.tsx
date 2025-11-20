@@ -8,12 +8,15 @@ import Login from "../pages/Login";
 import Unauthorized from "../pages/unauthorized";
 import UsersManagement from "../pages/admin/UsersManagement";
 import RolesManagement from "../pages/admin/RolesManagement";
-import Dashboard from "../pages/admin/Dashboard";
+import { AdminDashboard } from "../pages/admin/Dashboard";
 import ManagerDashboard from "../pages/manager/ManagerDashboard";
 import Home from "../pages/Home";
 import ProductsListPage from "../pages/ProductsListPage";
 import ProductDetailPage from "../pages/ProductDetailPage";
 import CheckOutPage from "../pages/CheckOutPage";
+import BulkOrderPage from "../pages/BulkOrderPage";
+import { NavProvider } from "../context/NavContext";
+import OrderList from "../pages/OrdersListPage";
 
 /**
  * Routes:
@@ -35,37 +38,90 @@ const router = createBrowserRouter([
 
   // All private routes: require authentication
   {
-    element: <PrivateRoute />, // auth-only wrapper
+    element: (
+      <NavProvider>
+        <PrivateRoute />
+      </NavProvider>
+    ), // auth-only wrapper
     children: [
-      { path: "/home", element: <Home /> },
-      { path: "/products", element: <ProductsListPage /> },
-      { path: "/products/:id", element: <ProductDetailPage /> },
-      { path: "/checkout", element: <CheckOutPage /> },
-
+      // Home page – maybe all logged-in users can access
       {
-        // Admin dashboard
-        path: "/admin/dashboard",
+        path: "/home",
         element: (
-          <PrivateRoute requiredPermissions={["dashboard:view"]}>
-            <Dashboard />
+          <PrivateRoute requiredPermissions={[] /* or [] for all */}>
+            <Home />
           </PrivateRoute>
         ),
       },
 
-      // Users routing (parent requires read; create/update children protected individually)
+      // Products
+      {
+        path: "/products",
+        element: (
+          <PrivateRoute requiredPermissions={["products:read"]}>
+            <ProductsListPage />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "/products/:id",
+        element: (
+          <PrivateRoute requiredPermissions={["products:read"]}>
+            <ProductDetailPage />
+          </PrivateRoute>
+        ),
+      },
+
+      // Checkout
+      {
+        path: "/checkout",
+        element: (
+          <PrivateRoute requiredPermissions={["orders:create"]}>
+            <CheckOutPage />
+          </PrivateRoute>
+        ),
+      },
+
+      // Bulk order
+      {
+        path: "/bulk-order",
+        element: (
+          <PrivateRoute requiredPermissions={["orders:create"]}>
+            <BulkOrderPage />
+          </PrivateRoute>
+        ),
+      },
+
+      // Orders list
+      {
+        path: "/orders",
+        element: (
+          <PrivateRoute requiredPermissions={["orders:read"]}>
+            <OrderList />
+          </PrivateRoute>
+        ),
+      },
+
+      // Dashboard
+      {
+        path: "/dashboard",
+        element: (
+          <PrivateRoute requiredPermissions={["dashboard:view"]}>
+            <AdminDashboard />
+          </PrivateRoute>
+        ),
+      },
+
+      // Users routing
       {
         path: "/admin/users",
         element: (
-          // require basic read permission to visit users area
           <PrivateRoute requiredPermissions={["users:read"]}>
             <Outlet />
           </PrivateRoute>
         ),
         children: [
-          // index -> list
           { index: true, element: <UsersManagement /> },
-
-          // create -> show modal in create mode; require users:create
           {
             path: "create",
             element: (
@@ -74,8 +130,6 @@ const router = createBrowserRouter([
               </PrivateRoute>
             ),
           },
-
-          // edit -> show modal in edit mode; require users:update
           {
             path: ":id/edit",
             element: (
@@ -87,7 +141,7 @@ const router = createBrowserRouter([
         ],
       },
 
-      // Roles routing (parent requires read; create/update children protected individually)
+      // Roles routing
       {
         path: "/admin/roles",
         element: (
@@ -96,10 +150,7 @@ const router = createBrowserRouter([
           </PrivateRoute>
         ),
         children: [
-          // index -> list
           { index: true, element: <RolesManagement /> },
-
-          // create -> show ManageRole in create mode; require roles:create
           {
             path: "create",
             element: (
@@ -108,8 +159,6 @@ const router = createBrowserRouter([
               </PrivateRoute>
             ),
           },
-
-          // edit -> show ManageRole in edit mode; require roles:update
           {
             path: ":id/edit",
             element: (
@@ -134,16 +183,10 @@ const router = createBrowserRouter([
   },
 
   // Unauthorized
-  {
-    path: "/unauthorized",
-    element: <Unauthorized />,
-  },
+  { path: "/unauthorized", element: <Unauthorized /> },
 
   // Fallback
-  {
-    path: "*",
-    element: <Navigate to="/home" replace />,
-  },
+  { path: "*", element: <Navigate to="/login" replace /> },
 ]);
 
 export default router;

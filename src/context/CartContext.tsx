@@ -6,22 +6,9 @@ import React, {
   useMemo,
   useState,
 } from "react";
-import type { Product } from "../services/product.service";
+import type { Product } from "../types/product";
+import type { CartItem, CartTotals } from "../types/cart";
 
-export type CartItem = {
-  id: string;
-  product: Product;
-  qty: number;
-};
-
-export type CartTotals = {
-  itemsCount: number;
-  subtotal: number;
-  shipping: number;
-  tax: number;
-  discount: number;
-  total: number;
-};
 interface CartData {
   items: CartItem[];
   cart: CartItem[];

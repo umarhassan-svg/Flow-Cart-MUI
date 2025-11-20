@@ -15,7 +15,8 @@ import {
   Typography,
   Pagination,
 } from "@mui/material";
-import productService, { type Review } from "../../../services/product.service";
+import productService from "../../../services/product.service";
+import type { Review } from "../../../types/product";
 
 type Props = {
   productId?: string | null;
@@ -24,7 +25,7 @@ type Props = {
 
 const PAGE_SIZE = 6;
 
-const ProductReviews: React.FC<Props> = ({ productId }) => {
+const ProductReviews = ({ productId }: Props) => {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [page, setPage] = useState<number>(1);
   const [total, setTotal] = useState<number>(0);

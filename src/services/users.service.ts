@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // src/services/users.service.ts
 import api from "./api/axios";
-import type { User } from "./auth.service";
+import type { User } from "../types/User";
 
 /**
  * Generic paginated response from backend

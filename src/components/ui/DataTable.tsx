@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+// src/components/ui/DataTable.tsx
 import React from "react";
 import {
   Avatar,
@@ -29,6 +31,7 @@ export type Column<T> = {
   // optional accessor when `render` not provided; supports nested keys like 'user.name'
   accessor?: string;
 };
+
 export type colorType =
   | "inherit"
   | "primary"
@@ -44,7 +47,6 @@ export type RowAction<T> = {
   icon: React.ReactNode;
   onClick: (row: T) => void;
   color?: colorType;
-
   // optional predicate to hide action for a particular row
   visible?: (row: T) => boolean;
 };
@@ -57,10 +59,7 @@ type Props<T> = {
   total: number;
   page: number; // zero-based
   rowsPerPage: number;
-  onPageChange: (
-    event: React.MouseEvent<HTMLButtonElement> | null,
-    page: number
-  ) => void;
+  onPageChange: (event: unknown, page: number) => void;
   onRowsPerPageChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   // actions column (optional)
   actions?: RowAction<T>[];
@@ -71,20 +70,18 @@ type Props<T> = {
   emptyMessage?: string;
 };
 
-interface NumberWithIndex {
-  [key: string]: number;
-}
-interface AccObject {
-  [key: string]: unknown;
-}
-function getByAccessor(accessor?: string) {
-  if (!accessor) return undefined;
-  return accessor.split(".").reduce((acc: AccObject, k: string) => {
-    if (acc && k in acc) {
-      return { ...acc, [k]: acc[k] };
-    }
-    return acc;
-  }, {} as AccObject);
+function getByAccessor(
+  obj: Record<string, unknown> | undefined,
+  accessor?: string
+) {
+  if (!accessor || !obj) return undefined;
+  return accessor
+    .split(".")
+    .reduce<Record<string, unknown> | unknown>((acc: any, k: string) => {
+      if (acc && typeof acc === "object")
+        return (acc as Record<string, unknown>)[k];
+      return undefined;
+    }, obj);
 }
 
 function DataTableInner<T>({
@@ -103,10 +100,12 @@ function DataTableInner<T>({
 }: Props<T>) {
   const theme = useTheme();
 
-  const getRowKey = (row: T, idx: number) =>
+  const getRowKey = (row: T, idx: number): string =>
     typeof rowKey === "function"
       ? rowKey(row)
-      : (row as NumberWithIndex)[rowKey] ?? String(idx);
+      : ((row as unknown as Record<string, unknown>)[
+          rowKey as string
+        ] as string) ?? String(idx);
 
   return (
     <Paper elevation={2} sx={{ borderRadius: 2, overflow: "hidden" }}>
@@ -162,12 +161,15 @@ function DataTableInner<T>({
                   {columns.map((col) => {
                     const value = col.render
                       ? col.render(row)
-                      : getByAccessor(col.accessor ?? col.field);
-                    // simplest special-case for common patterns: if value is array -> show chips
+                      : getByAccessor(
+                          row as unknown as Record<string, unknown>,
+                          col.accessor ?? col.field
+                        );
+
                     const content =
                       Array.isArray(value) && value.length > 0 ? (
                         <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
-                          {value.map((v: React.ReactNode, i: number) => (
+                          {value.map((v: unknown, i: number) => (
                             <Chip
                               key={String(v) + i}
                               label={String(v)}
@@ -178,7 +180,6 @@ function DataTableInner<T>({
                       ) : typeof value === "string" &&
                         value &&
                         col.field.toLowerCase().includes("name") ? (
-                        // if column looks like a "name", render avatar + name for nicer UI
                         <Stack direction="row" spacing={2} alignItems="center">
                           <Avatar sx={{ bgcolor: theme.palette.primary.main }}>
                             {String(value).charAt(0).toUpperCase()}
@@ -190,9 +191,8 @@ function DataTableInner<T>({
                           </Box>
                         </Stack>
                       ) : (
-                        // fallback: render primitive
                         <Typography variant="body2">
-                          {JSON.stringify(value) ?? "-"}
+                          {(value as string) ?? "-"}
                         </Typography>
                       );
 

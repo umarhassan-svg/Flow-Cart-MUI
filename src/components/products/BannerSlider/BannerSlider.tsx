@@ -21,12 +21,12 @@ type Props = {
   height?: number | string;
 };
 
-const BannerSlider: React.FC<Props> = ({
+const BannerSlider = ({
   banners,
   autoPlay = true,
   intervalMs = 5000,
   height = 220,
-}) => {
+}: Props) => {
   const [index, setIndex] = useState(0);
   const ref = useRef<HTMLDivElement | null>(null);
   const timerRef = useRef<number | null>(null);

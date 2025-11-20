@@ -26,7 +26,7 @@ import ManageUser from "../../components/admin/ManageUser/ManageUser";
 import UsersTable from "../../components/admin/UsersTable/UsersTable";
 
 import usersService from "../../services/users.service";
-import type { User } from "../../services/auth.service";
+import type { User } from "../../types/User";
 import type { Role } from "../../services/users.service";
 import LayoutMain from "../../components/layout/layoutMain";
 
@@ -219,9 +219,21 @@ const UsersManagement = () => {
               justifyContent="space-between"
             >
               <Box>
-                <Typography variant="h5" fontWeight={700}>
+                <Typography
+                  variant="h5"
+                  fontWeight="bold"
+                  sx={{
+                    fontSize: {
+                      xs: "1.25rem", // extra-small screens (mobile)
+                      sm: "1.5rem", // small screens
+                      md: "1.75rem", // medium screens
+                      lg: "2rem", // large screens
+                    },
+                  }}
+                >
                   User Management
                 </Typography>
+
                 <Typography
                   variant="body2"
                   color="text.secondary"

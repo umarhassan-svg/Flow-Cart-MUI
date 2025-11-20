@@ -148,7 +148,7 @@ export const darkTheme = createTheme({
     MuiPaper: {
       styleOverrides: {
         root: {
-          backgroundColor: "#071821",
+          backgroundColor: "#002022",
           borderRadius: 14,
           boxShadow: "0 10px 30px rgba(0,0,0,0.6)",
         },

@@ -1,10 +1,17 @@
-// src/components/cart/CartItemCard.tsx
 import React, { useCallback } from "react";
-import { Box, IconButton, Stack, Typography, TextField } from "@mui/material";
+import {
+  Box,
+  IconButton,
+  Stack,
+  Typography,
+  TextField,
+  Paper,
+  useTheme,
+} from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
-import type { CartItem } from "../../context/CartContext";
+import type { CartItem } from "../../types/cart";
 import { styled } from "@mui/material/styles";
 
 type Props = {
@@ -16,22 +23,25 @@ type Props = {
 };
 
 const Thumb = styled("img")(({ theme }) => ({
-  width: 72,
-  height: 72,
+  width: 80,
+  height: 80,
   objectFit: "cover",
   borderRadius: 8,
   border: `1px solid ${theme.palette.divider}`,
+  backgroundColor: theme.palette.action.hover,
 }));
 
-const CartItemCard: React.FC<Props> = ({
+const CartItemCard = ({
   item,
   onIncrement,
   onDecrement,
   onSetQty,
   onRemove,
-}) => {
+}: Props) => {
+  const theme = useTheme();
+
   const price = item.product.discountPrice ?? item.product.price;
-  const formatted = new Intl.NumberFormat(undefined, {
+  const formattedPrice = new Intl.NumberFormat(undefined, {
     style: "currency",
     currency: item.product.currency ?? "USD",
   }).format(price);
@@ -45,71 +55,141 @@ const CartItemCard: React.FC<Props> = ({
   );
 
   return (
-    <Stack direction="row" spacing={2} alignItems="center" sx={{ py: 1 }}>
-      <Box>
-        <Thumb
-          src={item.product.images?.[0] ?? ""}
-          alt={item.product.title}
-          loading="lazy"
-        />
-      </Box>
+    <Paper
+      elevation={0}
+      variant="outlined"
+      sx={{
+        p: 2,
+        borderRadius: 2,
+        backgroundColor: "background.paper",
+      }}
+    >
+      <Stack
+        direction={{ xs: "column", sm: "row" }}
+        spacing={2}
+        alignItems={{ xs: "flex-start", sm: "center" }}
+        justifyContent="space-between"
+        width="100%"
+      >
+        {/* SECTION 1: Image and Details */}
+        <Stack
+          direction="row"
+          spacing={2}
+          alignItems="center"
+          sx={{ flex: 1, width: "100%" }}
+        >
+          <Box>
+            <Thumb
+              src={item.product.images?.[0] ?? ""}
+              alt={item.product.title}
+              loading="lazy"
+            />
+          </Box>
 
-      <Box sx={{ minWidth: 0, flex: 1 }}>
-        <Typography noWrap sx={{ fontWeight: 700 }}>
-          {item.product.title}
-        </Typography>
+          <Box sx={{ minWidth: 0, flex: 1 }}>
+            <Typography
+              variant="subtitle1"
+              sx={{
+                fontWeight: 500,
+                lineHeight: 1.2,
+                mb: 0.5,
+              }}
+            >
+              {item.product.title}
+            </Typography>
 
-        <Typography variant="caption" color="text.secondary" noWrap>
-          {item.product.category ?? ""}
-        </Typography>
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              sx={{ display: "block" }}
+            >
+              {item.product.category ?? "Product"}
+            </Typography>
 
-        <Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 0.5 }}>
-          <Typography variant="body2" sx={{ fontWeight: 700 }}>
-            {formatted}
-          </Typography>
-
-          <Typography variant="caption" color="text.secondary">
-            x {item.qty}
-          </Typography>
+            {/* Mobile Only: Price shows under title for compact view, or remove this to keep price only at bottom */}
+            <Typography
+              variant="body2"
+              fontWeight="bold"
+              color="primary"
+              sx={{ display: { xs: "block", sm: "none" }, mt: 1 }}
+            >
+              {formattedPrice}
+            </Typography>
+          </Box>
         </Stack>
-      </Box>
 
-      {/* qty controls */}
-      <Stack direction="row" spacing={0.5} alignItems="center">
-        <IconButton
-          size="small"
-          aria-label="decrement"
-          onClick={() => onDecrement(item.id)}
+        {/* SECTION 2: Actions (Price, Qty, Delete) */}
+        <Stack
+          direction="row"
+          spacing={{ xs: 0, sm: 3 }}
+          alignItems="center"
+          justifyContent={{ xs: "space-between", sm: "flex-end" }}
+          sx={{ width: { xs: "100%", sm: "auto" } }}
         >
-          <RemoveIcon fontSize="small" />
-        </IconButton>
+          {/* Desktop Price (Hidden on Mobile) */}
+          <Typography
+            variant="body1"
+            fontWeight="bold"
+            sx={{
+              display: { xs: "none", sm: "block" },
+              minWidth: 80,
+              textAlign: "right",
+            }}
+          >
+            {formattedPrice}
+          </Typography>
 
-        <TextField
-          size="small"
-          inputProps={{ style: { textAlign: "center", width: 48 }, min: 1 }}
-          value={item.qty}
-          onChange={handleChangeQty}
-        />
+          {/* Quantity Controls */}
+          <Stack
+            direction="row"
+            spacing={0}
+            alignItems="center"
+            sx={{
+              border: `1px solid ${theme.palette.divider}`,
+              borderRadius: 1,
+            }}
+          >
+            <IconButton
+              size="small"
+              onClick={() => onDecrement(item.id)}
+              disabled={item.qty <= 1}
+            >
+              <RemoveIcon fontSize="small" />
+            </IconButton>
 
-        <IconButton
-          size="small"
-          aria-label="increment"
-          onClick={() => onIncrement(item.id)}
-        >
-          <AddIcon fontSize="small" />
-        </IconButton>
+            <TextField
+              variant="standard"
+              InputProps={{ disableUnderline: true }}
+              inputProps={{
+                style: {
+                  textAlign: "center",
+                  width: 40,
+                  padding: 0,
+                  fontSize: 14,
+                },
+                min: 1,
+              }}
+              value={item.qty}
+              onChange={handleChangeQty}
+            />
+
+            <IconButton size="small" onClick={() => onIncrement(item.id)}>
+              <AddIcon fontSize="small" />
+            </IconButton>
+          </Stack>
+
+          {/* Delete Button */}
+          <IconButton
+            aria-label="remove item"
+            color="error"
+            onClick={() => onRemove(item.id)}
+            sx={{ ml: { xs: 0, sm: 1 } }}
+          >
+            <DeleteIcon />
+          </IconButton>
+        </Stack>
       </Stack>
-
-      <Box>
-        <IconButton
-          aria-label="remove item"
-          color="error"
-          onClick={() => onRemove(item.id)}
-        >
-          <DeleteIcon />
-        </IconButton>
-      </Box>
-    </Stack>
+    </Paper>
   );
 };
 

@@ -11,7 +11,8 @@ import {
   CircularProgress,
   Divider,
 } from "@mui/material";
-import productService, { type Product } from "../services/product.service";
+import productService from "../services/product.service";
+import type { Product } from "../types/product";
 import ProductDetailBox from "../components/products/ProductDetailBox/ProductsDetailBox";
 import ProductReviews from "../components/products/ProductReviews/ProductReviews";
 import SimilarProductsList from "../components/products/SimilarProductsList/SimilarProductsList";

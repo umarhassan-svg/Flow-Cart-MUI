@@ -8,9 +8,14 @@ import {
   Stack,
   Typography,
   CircularProgress,
+  TextField,
+  InputAdornment,
+  IconButton, // Import IconButton
 } from "@mui/material";
 import FilterListIcon from "@mui/icons-material/FilterList";
-import productsService, { type Product } from "../services/product.service";
+import SearchIcon from "@mui/icons-material/Search";
+import productsService from "../services/product.service";
+import type { Product } from "../types/product";
 import BannerSlider, {
   type Banner,
 } from "../components/products/BannerSlider/BannerSlider";
@@ -42,11 +47,28 @@ const sampleBanners: Banner[] = [
   },
 ];
 
-const ProductsListPage: React.FC = () => {
+type ProductQuery = {
+  page: number;
+  limit: number;
+  search?: string;
+  category?: string;
+  tags?: string[];
+  minPrice?: number;
+  maxPrice?: number;
+  minRating?: number;
+};
+
+const ProductsListPage = () => {
   const [banners] = useState<Banner[]>(sampleBanners);
 
   const [featured, setFeatured] = useState<Product[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
+
+  // Search States
+  const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [isSearchOpen, setIsSearchOpen] = useState(false); // New state for toggling search bar
+
   const [page, setPage] = useState(1);
   const [limit] = useState(12);
   const [total, setTotal] = useState(0);
@@ -57,6 +79,16 @@ const ProductsListPage: React.FC = () => {
   const [filters, setFilters] = useState<Filters | undefined>(undefined);
   const navigate = useNavigate();
   const { addToCart } = useCart();
+
+  // Debounce Effect
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchTerm);
+      setPage(1);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
 
   const loadFeatured = useCallback(async () => {
     setFeaturedLoading(true);
@@ -77,13 +109,14 @@ const ProductsListPage: React.FC = () => {
         const q = {
           page,
           limit,
+          search: debouncedSearch,
           category: filters?.category ?? undefined,
           tags: filters?.tags,
           minPrice: filters?.minPrice,
           maxPrice: filters?.maxPrice,
           minRating: filters?.minRating,
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } as any;
+        } as ProductQuery;
+
         const res = await productsService.list(q);
         setTotal(res.total);
         if (reset) setProducts(res.data);
@@ -97,19 +130,19 @@ const ProductsListPage: React.FC = () => {
         setLoading(false);
       }
     },
-    [page, limit, filters]
+    [page, limit, filters, debouncedSearch]
   );
 
   useEffect(() => {
     loadFeatured();
   }, [loadFeatured]);
 
-  // reload when filters or page changes
   useEffect(() => {
     loadProducts(page === 1);
-  }, [page, filters, loadProducts]);
+  }, [page, filters, debouncedSearch, loadProducts]);
 
   const handleOpenFilter = () => setFilterOpen(true);
+
   const handleApplyFilter = (f: Filters) => {
     setFilters(f);
     setPage(1);
@@ -118,66 +151,159 @@ const ProductsListPage: React.FC = () => {
 
   const handleClearFilter = () => {
     setFilters(undefined);
+    setSearchTerm("");
     setPage(1);
   };
 
   const handleAddToCart = (p: Product) => {
-    // wire to cart context / store
-    console.log("add to cart", p);
     addToCart(p);
   };
 
   const canLoadMore = products.length < total;
 
   const handleOpenProductDetail = (p: Product) => {
-    console.log("open product detail", p);
     navigate(`/products/${p.id}`);
   };
+
+  const handleBulkOrder = () => {
+    navigate("/bulk-order");
+  };
+
+  // Check if user is actively searching (either typing or debounced search is applied)
+  const isSearching = searchTerm.length > 0 || debouncedSearch.length > 0;
+
+  const handleToggleSearch = () => {
+    // If we are closing the search bar, clear the search term
+    if (isSearchOpen) {
+      setSearchTerm("");
+    }
+    setIsSearchOpen((prev) => !prev);
+  };
+
   return (
     <LayoutMain>
       <Container maxWidth="xl" sx={{ py: 3 }}>
-        {/* banners */}
-        <BannerSlider banners={banners} height={260} />
-
+        {/* New Stack for Title + Search Icon */}
         <Stack
           direction="row"
-          alignItems="center"
           justifyContent="space-between"
-          sx={{ mt: 3, mb: 2 }}
+          alignItems="center"
+          spacing={2}
+          sx={{ mb: 3 }}
         >
-          <Typography variant="h6" sx={{ fontWeight: 700 }}>
-            Featured products
-          </Typography>
+          {/* Title and Subtitle Section (left aligned) */}
+          <Box>
+            <Typography
+              variant="h5"
+              fontWeight="bold"
+              sx={{
+                fontSize: {
+                  xs: "1.25rem", // extra-small screens (mobile)
+                  sm: "1.5rem", // small screens
+                  md: "1.75rem", // medium screens
+                  lg: "2rem", // large screens
+                },
+              }}
+            >
+              Our Products
+            </Typography>
 
-          <Stack direction="row" spacing={1}>
-            <Button variant="text" size="small" onClick={loadFeatured}>
-              Refresh
-            </Button>
-          </Stack>
+            <Typography variant="body1" color="text.secondary">
+              Let's start shopping
+            </Typography>
+          </Box>
+
+          {/* Search Toggle Icon (right aligned) */}
+          <IconButton
+            onClick={handleToggleSearch}
+            color={isSearchOpen ? "primary" : "default"}
+            size="large"
+          >
+            <SearchIcon />
+          </IconButton>
         </Stack>
 
-        <Box sx={{ mb: 4 }}>
-          {featuredLoading ? (
-            <CircularProgress />
-          ) : (
-            <ProductsGrid
-              products={featured}
-              onAddToCart={handleAddToCart}
-              onOpen={handleOpenProductDetail}
+        {/* Search Bar on Top (Conditional Rendering) */}
+        {isSearchOpen && (
+          <Box sx={{ mb: 4, maxWidth: "100%" }}>
+            <TextField
+              // fullWidth remains true to fill the container width
+              fullWidth
+              placeholder="Search for products, categories..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              autoFocus // Focus the field when it appears
+              size="small"
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon color="action" />
+                  </InputAdornment>
+                ),
+              }}
             />
-          )}
-        </Box>
+          </Box>
+        )}
 
-        <Divider sx={{ my: 3 }} />
+        {/* Conditionally Render Banners & Featured: Hide if searching */}
+        {!isSearching && (
+          <>
+            {/* Banners */}
+            <BannerSlider banners={banners} height={260} />
 
+            {/* Featured Section */}
+            <Stack
+              direction="row"
+              alignItems="center"
+              justifyContent="space-between"
+              sx={{ mt: 3, mb: 2 }}
+            >
+              <Typography variant="h6" sx={{ fontWeight: 700 }}>
+                Featured products
+              </Typography>
+
+              <Stack direction="row" spacing={1}>
+                <Button variant="text" size="small" onClick={loadFeatured}>
+                  Refresh
+                </Button>
+                <Button
+                  variant="contained"
+                  size="small"
+                  onClick={handleBulkOrder}
+                >
+                  Bulk Order
+                </Button>
+              </Stack>
+            </Stack>
+
+            <Box sx={{ mb: 4 }}>
+              {featuredLoading ? (
+                <CircularProgress />
+              ) : (
+                <ProductsGrid
+                  products={featured}
+                  onAddToCart={handleAddToCart}
+                  onOpen={handleOpenProductDetail}
+                />
+              )}
+            </Box>
+
+            <Divider sx={{ my: 3 }} />
+          </>
+        )}
+
+        {/* Main Product List (Always visible, shows search results) */}
         <Stack
-          direction="row"
-          alignItems="center"
+          direction={{ xs: "column", sm: "row" }}
+          alignItems={{ xs: "stretch", sm: "center" }}
           justifyContent="space-between"
+          spacing={2}
           sx={{ mb: 2 }}
         >
           <Typography variant="h6" sx={{ fontWeight: 700 }}>
-            All products
+            {isSearching
+              ? `Search Results for "${debouncedSearch}"`
+              : "All products"}
           </Typography>
 
           <Stack direction="row" spacing={1} alignItems="center">
@@ -196,6 +322,17 @@ const ProductsListPage: React.FC = () => {
         </Stack>
 
         <Box sx={{ mb: 4 }}>
+          {/* Show 'No results' message if search yields nothing */}
+          {!loading && products.length === 0 && (
+            <Box textAlign="center" py={5}>
+              <Typography variant="body1" color="text.secondary">
+                {isSearching
+                  ? `No products found matching "${debouncedSearch}".`
+                  : "No products available."}
+              </Typography>
+            </Box>
+          )}
+
           <ProductsGrid
             products={products}
             loading={loading}
@@ -211,9 +348,9 @@ const ProductsListPage: React.FC = () => {
             <Button variant="contained" onClick={() => setPage((p) => p + 1)}>
               Load more
             </Button>
-          ) : (
+          ) : products.length > 0 ? (
             <Typography color="text.secondary">No more products</Typography>
-          )}
+          ) : null}
         </Box>
 
         <FilterDialog

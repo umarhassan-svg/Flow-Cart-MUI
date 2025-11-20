@@ -1,12 +1,6 @@
 // src/services/roles.service.ts
 import api from "./api/axios";
-
-export interface Role {
-  id: string;
-  name: string;
-  pages: string[];
-  permissions?: string[];
-}
+import type { Role } from "../types/Roles";
 
 /**
  * Helper to extract server error message (if present)

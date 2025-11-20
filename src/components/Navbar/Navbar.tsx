@@ -1,5 +1,5 @@
 // src/components/Navbar/Navbar.tsx
-import React, { useState } from "react";
+import { useState } from "react";
 import {
   AppBar,
   Avatar,
@@ -19,13 +19,17 @@ import SettingsOutlinedIcon from "@mui/icons-material/SettingsOutlined";
 import LogoutOutlinedIcon from "@mui/icons-material/LogoutOutlined";
 import { useAuth } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
-import type { NavItem } from "../../utils/loadAllowedPages";
+import type { NavItem } from "../../utils/nav";
+import { useNav } from "../../context/NavContext";
+import { useThemeContext } from "../../context/ThemeContext";
+import LightModeIcon from "@mui/icons-material/LightMode";
 
 type Props = {
   onToggleSidebar: () => void; // collapses on desktop / opens on mobile
   onToggleCart?: () => void;
   cartCount?: number;
   onSettings?: () => void;
+  openSidebar?: boolean;
 };
 
 const ALL_NAV: NavItem[] = [
@@ -34,17 +38,21 @@ const ALL_NAV: NavItem[] = [
   { key: "orders", label: "Orders", path: "/admin/orders" },
 ];
 
-const Navbar: React.FC<Props> = ({
+const Navbar = ({
   onToggleSidebar,
   onToggleCart,
   cartCount = 0,
   onSettings,
-}) => {
+}: Props) => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const profileOpen = Boolean(anchorEl);
 
-  const { logout, allowedNavItems } = useAuth();
+  const { logout, user } = useAuth();
   const navigate = useNavigate();
+  const { toggleTheme } = useThemeContext();
+
+  // Nav comes from NavContext
+  const { nav: allowedNavItems, loading: navLoading } = useNav();
 
   const onLogoutClick = async () => {
     try {
@@ -55,21 +63,19 @@ const Navbar: React.FC<Props> = ({
   };
 
   // Decide which middle nav items to show:
-  // - while loading (allowedNavItems === null) -> show ALL_NAV for better UX
+  // - while loading -> show ALL_NAV for better UX
   // - when loaded: if list non-empty show allowedNavItems (normalized), else fallback to ALL_NAV
-  const middleNavToShow: NavItem[] =
-    allowedNavItems === null
-      ? ALL_NAV
-      : allowedNavItems.length > 0
-      ? allowedNavItems.map((it) => ({
-          ...it,
-          path: it.path ?? `/admin/${it.key}`,
-        }))
-      : ALL_NAV;
+  const middleNavToShow = navLoading ? ALL_NAV : allowedNavItems ?? ALL_NAV;
 
   const handleMiddleNav = (path: string) => {
     navigate(path);
   };
+
+  // helper to show initial from user name if available
+  const avatarInitial =
+    user?.name && String(user.name).trim().length > 0
+      ? String(user.name).trim().charAt(0).toUpperCase()
+      : "U";
 
   return (
     <AppBar
@@ -81,17 +87,21 @@ const Navbar: React.FC<Props> = ({
         borderColor: "divider",
         zIndex: (t) => t.zIndex.drawer + 120,
         backdropFilter: "blur(6px)",
+        borderRadius: 0,
       }}
     >
       <Toolbar sx={{ display: "flex", gap: 2 }}>
-        <IconButton
-          edge="start"
-          aria-label="menu"
-          onClick={onToggleSidebar}
-          size="large"
-        >
-          <MenuIcon />
-        </IconButton>
+        {
+          <IconButton
+            edge="start"
+            aria-label="menu"
+            onClick={onToggleSidebar}
+            size="large"
+            sx={{ display: { lg: "none" } }}
+          >
+            <MenuIcon />
+          </IconButton>
+        }
 
         {/* Logo + middle nav */}
         <Box sx={{ display: "flex", alignItems: "center", gap: 2, flex: 1 }}>
@@ -100,7 +110,7 @@ const Navbar: React.FC<Props> = ({
           </Typography>
 
           {/* middle nav — hidden on xs */}
-          <Box sx={{ display: { xs: "none", sm: "flex" }, gap: 1 }}>
+          <Box sx={{ display: { xs: "none", sm: "none", lg: "flex" }, gap: 1 }}>
             {middleNavToShow.map((item) => (
               <Button
                 key={item.key}
@@ -133,7 +143,7 @@ const Navbar: React.FC<Props> = ({
             size="large"
             aria-label="profile"
           >
-            <Avatar sx={{ width: 34, height: 34 }}>J</Avatar>
+            <Avatar sx={{ width: 34, height: 34 }}>{avatarInitial}</Avatar>
           </IconButton>
 
           <Menu
@@ -143,6 +153,17 @@ const Navbar: React.FC<Props> = ({
             transformOrigin={{ horizontal: "right", vertical: "top" }}
             anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
           >
+            <MenuItem
+              onClick={() => {
+                toggleTheme();
+              }}
+            >
+              <ListItemIcon>
+                <LightModeIcon fontSize="small" />
+              </ListItemIcon>
+              Toggle Theme
+            </MenuItem>
+
             <MenuItem
               onClick={() => {
                 setAnchorEl(null);

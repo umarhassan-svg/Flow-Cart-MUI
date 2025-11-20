@@ -1,10 +1,9 @@
 // src/components/products/SimilarProductsList.tsx
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Box, Skeleton, useTheme, Typography } from "@mui/material";
 import { useNavigate } from "react-router-dom";
-import productService, {
-  type Product,
-} from "../../../services/product.service";
+import productService from "../../../services/product.service";
+import type { Product } from "../../../types/product";
 import ProductCard from "../ProductCard/Productcard";
 
 type Props = {
@@ -16,7 +15,7 @@ type Props = {
 const CARD_MIN_WIDTH = 300;
 const CARD_MAX_WIDTH = 300;
 
-const SimilarProductsList: React.FC<Props> = ({ product, limit = 8 }) => {
+const SimilarProductsList = ({ product, limit = 8 }: Props) => {
   const theme = useTheme();
   const navigate = useNavigate();
   const [similar, setSimilar] = useState<Product[]>([]);

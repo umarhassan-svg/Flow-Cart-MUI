@@ -27,7 +27,7 @@ import type {
   CreateUserPayload,
   UpdateUserPayload,
 } from "../../../services/users.service";
-import type { User } from "../../../services/auth.service";
+import type { User } from "../../../types/User";
 
 type Props = {
   open: boolean;
@@ -38,14 +38,14 @@ type Props = {
   onSaved?: () => void;
 };
 
-const ManageUser: React.FC<Props> = ({
+const ManageUser = ({
   open,
   mode,
   roles = [],
   initialUser,
   onClose,
   onSaved,
-}) => {
+}: Props) => {
   const theme = useTheme();
 
   const [name, setName] = useState(initialUser?.name ?? "");

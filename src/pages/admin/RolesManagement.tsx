@@ -26,10 +26,10 @@ import ManageRole from "../../components/admin/ManageRole/ManageRole";
 import RolesTable from "../../components/admin/RolesTable/RolesTable";
 
 import rolesService from "../../services/roles.service";
-import type { Role } from "../../services/roles.service";
+import type { Role } from "../../types/Roles";
 import LayoutMain from "../../components/layout/layoutMain";
 
-const RolesManagement: React.FC = () => {
+const RolesManagement = () => {
   const navigate = useNavigate();
   const params = useParams<{ id?: string }>();
   const matchCreate = useMatch("/admin/roles/create");
@@ -215,9 +215,21 @@ const RolesManagement: React.FC = () => {
               justifyContent="space-between"
             >
               <Box>
-                <Typography variant="h5" fontWeight={700}>
+                <Typography
+                  variant="h5"
+                  fontWeight="bold"
+                  sx={{
+                    fontSize: {
+                      xs: "1.25rem", // extra-small screens (mobile)
+                      sm: "1.5rem", // small screens
+                      md: "1.75rem", // medium screens
+                      lg: "2rem", // large screens
+                    },
+                  }}
+                >
                   Roles Management
                 </Typography>
+
                 <Typography
                   variant="body2"
                   color="text.secondary"

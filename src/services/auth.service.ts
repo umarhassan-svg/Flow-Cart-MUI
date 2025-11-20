@@ -1,17 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // src/services/auth.service.ts
 import api from "./api/axios";
+import type { User } from "../types/User";
 
-export interface User {
-  id: string;
-  name: string;
-  email: string;
-  roles: string[];
-  // optional direct user permissions (stored server-side)
-  permissions?: string[];
-  // server computed effective permissions (union of role perms + user perms)
-  effectivePermissions?: string[];
-}
 
 const TOKEN_KEY = "token";
 const USER_KEY = "user";
@@ -28,13 +19,18 @@ const setAuthHeader = (token: string | null) => {
 };
 
 
-const saveSession = (token: string | null, user: User | null) => {
+const saveSession = (token: string | null, user: User | null, effectivePermissions?: string[], allowedPages?: string[]) => {
   if (token) localStorage.setItem(TOKEN_KEY, token);
   else localStorage.removeItem(TOKEN_KEY);
 
   if (user) localStorage.setItem(USER_KEY, JSON.stringify(user));
   else localStorage.removeItem(USER_KEY);
 
+  if (effectivePermissions) localStorage.setItem("effectivePermissions", JSON.stringify(effectivePermissions));
+  else localStorage.removeItem("effectivePermissions");
+
+  if (allowedPages) localStorage.setItem("allowedPages", JSON.stringify(allowedPages));
+  else localStorage.removeItem("allowedPages");
   // always update axios header based on token
   setAuthHeader(token);
 };
@@ -67,10 +63,10 @@ const authService = {
   async login(email: string, password: string): Promise<User> {
     try {
       const resp = await api.post("/auth/login", { email, password });
-      const { token, user } = resp.data as { token: string; user: User };
+      const { token, user , effectivePermissions, allowedPages } = resp.data as { token: string; user: User , effectivePermissions: string[], allowedPages: string[]};
 
       // Persist exactly what server returned (including effectivePermissions)
-      saveSession(token, user);
+      saveSession(token, user, effectivePermissions, allowedPages);
       return user;
     } catch (err: any) {
       const msg = err?.response?.data?.error || err?.message || "Login failed";

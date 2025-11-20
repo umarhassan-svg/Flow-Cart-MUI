@@ -3,7 +3,7 @@ import React from "react";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import DataTable, { type Column, type RowAction } from "../../ui/DataTable";
-import type { Role } from "../../../services/roles.service";
+import type { Role } from "../../../types/Roles";
 import { Avatar, Box, Stack, Typography } from "@mui/material";
 
 type Props = {
@@ -18,7 +18,7 @@ type Props = {
   onDelete: (r: Role) => void;
 };
 
-const RolesTable: React.FC<Props> = ({
+const RolesTable = ({
   roles,
   loading = false,
   total = 0,
@@ -28,7 +28,7 @@ const RolesTable: React.FC<Props> = ({
   onRowsPerPageChange,
   onEdit,
   onDelete,
-}) => {
+}: Props) => {
   // columns
   const columns: Column<Role>[] = [
     {

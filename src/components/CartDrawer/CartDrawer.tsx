@@ -13,14 +13,14 @@ import {
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
-import type { CartItem } from "../../context/CartContext";
+import type { CartItem } from "../../types/cart";
 import { useCart } from "../../context/CartContext";
 import CartItemCard from "../ui/CartItemCard";
+import { useNavigate } from "react-router-dom";
 
 type Props = {
   open: boolean;
   onClose: () => void;
-  onCheckout?: (totals: { total: number }) => void;
 };
 
 /**
@@ -28,7 +28,7 @@ type Props = {
  */
 const drawerWidth = { xs: "100%", sm: 480, md: 560 };
 
-const CartDrawer = ({ open, onClose, onCheckout }: Props) => {
+const CartDrawer = ({ open, onClose }: Props) => {
   const {
     items,
     increment,
@@ -38,12 +38,13 @@ const CartDrawer = ({ open, onClose, onCheckout }: Props) => {
     clearCart,
     totals,
   } = useCart();
+  const navigate = useNavigate();
 
   const handleCheckout = () => {
     // This should route to checkout page - keep placeholder for now
-    onCheckout?.({ total: totals.total });
     // example: navigate("/checkout") from parent
     console.log("Checkout", totals);
+    navigate("/checkout");
   };
 
   return (

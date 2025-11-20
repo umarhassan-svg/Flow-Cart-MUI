@@ -17,7 +17,7 @@ import {
 import AddShoppingCartIcon from "@mui/icons-material/AddShoppingCart";
 import LocalOfferIcon from "@mui/icons-material/LocalOffer";
 import StarIcon from "@mui/icons-material/Star";
-import type { Product } from "../../../services/product.service";
+import type { Product } from "../../../types/product";
 import { useIntersection } from "../../../hooks/useInteraction";
 import {
   StyledCard,
@@ -45,12 +45,12 @@ type Props = {
   loading?: boolean;
 };
 
-const ProductCard: React.FC<Props> = React.memo(function ProductCard({
+const ProductCard = React.memo(function ProductCard({
   product,
   onAddToCart,
   onClick,
   showActions = true,
-}) {
+}: Props) {
   const { ref, isIntersecting } = useIntersection<HTMLDivElement>();
   const primaryImage = product.images?.[0];
 

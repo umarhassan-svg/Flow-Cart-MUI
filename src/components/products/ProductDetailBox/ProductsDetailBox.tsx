@@ -21,7 +21,7 @@ import ShareIcon from "@mui/icons-material/Share";
 import LocalShippingIcon from "@mui/icons-material/LocalShipping";
 import LocalOfferIcon from "@mui/icons-material/LocalOffer";
 
-import type { Product } from "../../../services/product.service";
+import type { Product } from "../../../types/product";
 
 /* styles tokens import */
 import {
@@ -51,11 +51,7 @@ type Props = {
   onBuyNow?: (product: Product, qty?: number) => void;
 };
 
-const ProductDetailBox: React.FC<Props> = ({
-  product,
-  onAddToCart,
-  onBuyNow,
-}) => {
+const ProductDetailBox = ({ product, onAddToCart, onBuyNow }: Props) => {
   const theme = useTheme();
   const images = product.images ?? [];
   const [index, setIndex] = useState<number>(0);

@@ -36,14 +36,14 @@ type Props = {
   defaultFilters?: Filters;
 };
 
-const FilterDialog: React.FC<Props> = ({
+const FilterDialog = ({
   open,
   onClose,
   onApply,
   categories = [],
   tagOptions = [],
   defaultFilters,
-}) => {
+}: Props) => {
   const [category, setCategory] = useState<string | "">(
     (defaultFilters?.category as string) ?? ""
   );

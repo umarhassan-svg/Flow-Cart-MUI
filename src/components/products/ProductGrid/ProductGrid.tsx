@@ -2,7 +2,7 @@
 import React from "react";
 import { Grid, Box, CircularProgress } from "@mui/material";
 import ProductCard from "../ProductCard/Productcard";
-import type { Product } from "../../../services/product.service";
+import type { Product } from "../../../types/product";
 
 type Props = {
   products: Product[];
@@ -11,12 +11,12 @@ type Props = {
   onOpen: (p: Product) => void;
 };
 
-const ProductsGrid: React.FC<Props> = ({
+const ProductsGrid = ({
   products,
   loading = false,
   onAddToCart,
   onOpen,
-}) => {
+}: Props) => {
   return (
     <>
       {loading ? (

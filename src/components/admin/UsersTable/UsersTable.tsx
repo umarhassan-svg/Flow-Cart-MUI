@@ -2,7 +2,7 @@ import React from "react";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import DataTable, { type Column, type RowAction } from "../../ui/DataTable";
-import type { User } from "../../../services/auth.service";
+import type { User } from "../../../types/User";
 
 type Props = {
   users: User[];
@@ -16,7 +16,7 @@ type Props = {
   onDelete?: (u: User) => void;
 };
 
-const UsersTable: React.FC<Props> = (props) => {
+const UsersTable = (props: Props) => {
   const columns: Column<User>[] = [
     { field: "name", label: "User", accessor: "name" },
     { field: "email", label: "Email", accessor: "email" },
