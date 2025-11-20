@@ -5,6 +5,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import DataTable, { type Column, type RowAction } from "../../ui/DataTable";
 import type { Role } from "../../../types/Roles";
 import { Avatar, Box, Stack, Typography } from "@mui/material";
+import { useAuth } from "../../../context/AuthContext";
 
 type Props = {
   roles: Role[];
@@ -29,6 +30,7 @@ const RolesTable = ({
   onEdit,
   onDelete,
 }: Props) => {
+  const { can } = useAuth();
   // columns
   const columns: Column<Role>[] = [
     {
@@ -64,23 +66,29 @@ const RolesTable = ({
     },
   ];
 
-  const actions: RowAction<Role>[] = [
-    {
-      key: "edit",
-      label: "Edit",
-      icon: <EditIcon />,
-      onClick: (r) => onEdit(r),
-      color: "primary",
-    },
-    {
+  // actions
+
+  const actions: RowAction<Role>[] = [];
+
+  if (can("roles:delete")) {
+    actions.push({
       key: "delete",
       label: "Delete",
       icon: <DeleteIcon />,
       onClick: (r) => onDelete(r),
       color: "error",
       visible: () => true,
-    },
-  ];
+    });
+  }
+  if (can("roles:edit")) {
+    actions.push({
+      key: "edit",
+      label: "Edit",
+      icon: <EditIcon />,
+      onClick: (r) => onEdit(r),
+      color: "primary",
+    });
+  }
 
   return (
     <DataTable

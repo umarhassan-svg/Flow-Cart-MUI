@@ -1,8 +1,8 @@
 // src/components/LayoutMain.tsx (Option A - pixel mt)
 import React from "react";
 import { Box, CssBaseline } from "@mui/material";
-import Navbar from "../Navbar/Navbar";
-import SideBar from "../Sidebar/SideBar";
+import Navbar from "./Navbar/Navbar";
+import SideBar from "./Sidebar/SideBar";
 import CartDrawer from "../CartDrawer/CartDrawer";
 import { useCart } from "../../context/CartContext";
 

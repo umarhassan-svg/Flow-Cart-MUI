@@ -22,7 +22,7 @@ import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 // MUI X Charts
 import { LineChart } from "@mui/x-charts/LineChart";
 import { PieChart } from "@mui/x-charts/PieChart";
-import StatCard from "../../components/StatCard/StatCard";
+import StatCard from "../../components/DashBoard/StatCard/StatCard";
 import LayoutMain from "../../components/layout/layoutMain";
 
 // --- Mock Data ---
@@ -104,7 +104,7 @@ export const AdminDashboard = () => {
           sx={{
             flexGrow: 1,
             p: 3,
-            backgroundColor: "#f4f6f8",
+            backgroundColor: "background.default",
             minHeight: "100vh",
           }}
         >
@@ -260,7 +260,9 @@ export const AdminDashboard = () => {
                   <TableContainer>
                     <Table sx={{ minWidth: 650 }} aria-label="simple table">
                       <TableHead>
-                        <TableRow sx={{ backgroundColor: "#f4f6f8" }}>
+                        <TableRow
+                          sx={{ backgroundColor: "background.default" }}
+                        >
                           <TableCell sx={{ fontWeight: "bold" }}>
                             Product Name
                           </TableCell>
@@ -281,7 +283,9 @@ export const AdminDashboard = () => {
                             key={row.id}
                             sx={{
                               "&:last-child td, &:last-child th": { border: 0 },
-                              "&:hover": { backgroundColor: "#fafafa" },
+                              "&:hover": {
+                                backgroundColor: "primary.contrastText",
+                              },
                             }}
                           >
                             <TableCell

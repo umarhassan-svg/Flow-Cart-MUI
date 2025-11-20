@@ -13,10 +13,11 @@ import {
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
-import type { CartItem } from "../../types/cart";
+import type { CartItem } from "../../types/Cart";
 import { useCart } from "../../context/CartContext";
 import CartItemCard from "../ui/CartItemCard";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 
 type Props = {
   open: boolean;
@@ -39,6 +40,7 @@ const CartDrawer = ({ open, onClose }: Props) => {
     totals,
   } = useCart();
   const navigate = useNavigate();
+  const { can } = useAuth();
 
   const handleCheckout = () => {
     // This should route to checkout page - keep placeholder for now
@@ -168,14 +170,20 @@ const CartDrawer = ({ open, onClose }: Props) => {
             spacing={1}
             sx={{ mt: 2 }}
           >
-            <Button
-              variant="contained"
-              fullWidth
-              onClick={handleCheckout}
-              disabled={items.length === 0}
-            >
-              Checkout
-            </Button>
+            {can("orders:create") ? (
+              <Button
+                variant="contained"
+                fullWidth
+                onClick={handleCheckout}
+                disabled={items.length === 0}
+              >
+                Checkout
+              </Button>
+            ) : (
+              <Button variant="contained" fullWidth disabled>
+                Not Allowed to checkout
+              </Button>
+            )}
 
             <Button
               variant="outlined"

@@ -11,7 +11,7 @@ import {
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
-import type { CartItem } from "../../types/cart";
+import type { CartItem } from "../../types/Cart";
 import { styled } from "@mui/material/styles";
 
 type Props = {

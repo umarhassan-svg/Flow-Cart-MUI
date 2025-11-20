@@ -2,8 +2,8 @@
 // Replace with real API in production.
 
 import type { Order, OrderStatus } from "../types/Order";
-import type { Product } from "../types/product";
-import type { CartItem } from "../types/cart";
+import type { Product } from "../types/Product";
+import type { CartItem } from "../types/Cart";
 
 
 const generateId = (prefix = "ord") => `${prefix}_${Math.random().toString(36).slice(2, 9)}`;

@@ -17,7 +17,7 @@ import {
 import AddShoppingCartIcon from "@mui/icons-material/AddShoppingCart";
 import LocalOfferIcon from "@mui/icons-material/LocalOffer";
 import StarIcon from "@mui/icons-material/Star";
-import type { Product } from "../../../types/product";
+import type { Product } from "../../../types/Product";
 import { useIntersection } from "../../../hooks/useInteraction";
 import {
   StyledCard,
@@ -36,6 +36,7 @@ import {
   avatarSx,
   badgeSx,
 } from "./styles";
+import { useAuth } from "../../../context/AuthContext";
 
 type Props = {
   product: Product;
@@ -53,6 +54,7 @@ const ProductCard = React.memo(function ProductCard({
 }: Props) {
   const { ref, isIntersecting } = useIntersection<HTMLDivElement>();
   const primaryImage = product.images?.[0];
+  const { can } = useAuth();
 
   const handleAdd = useCallback(
     (e: React.MouseEvent) => {
@@ -175,18 +177,21 @@ const ProductCard = React.memo(function ProductCard({
         <Box component="footer" sx={actionsSx}>
           {/* Right side: add to cart + category avatar */}
           <Box sx={actionRightSx}>
-            <Button
-              size="small"
-              startIcon={<AddShoppingCartIcon />}
-              variant="contained"
-              onClick={handleAdd}
-              disabled={typeof product.stock === "number" && product.stock <= 0}
-              aria-label={`Add ${product.title} to cart`}
-              sx={{ borderRadius: 1.5, whiteSpace: "nowrap", px: 1.5 }}
-            >
-              Add to cart
-            </Button>
-
+            {can("cart:update") ? (
+              <Button
+                size="small"
+                startIcon={<AddShoppingCartIcon />}
+                variant="contained"
+                onClick={handleAdd}
+                disabled={
+                  typeof product.stock === "number" && product.stock <= 0
+                }
+                aria-label={`Add ${product.title} to cart`}
+                sx={{ borderRadius: 1.5, whiteSpace: "nowrap", px: 1.5 }}
+              >
+                Add to cart
+              </Button>
+            ) : null}
             <Tooltip title={product.category ?? "Category"}>
               <Avatar sx={avatarSx}>
                 {product.category

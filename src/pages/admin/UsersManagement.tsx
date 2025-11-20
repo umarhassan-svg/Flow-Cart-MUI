@@ -29,6 +29,7 @@ import usersService from "../../services/users.service";
 import type { User } from "../../types/User";
 import type { Role } from "../../services/users.service";
 import LayoutMain from "../../components/layout/layoutMain";
+import { useAuth } from "../../context/AuthContext";
 
 const UsersManagement = () => {
   const navigate = useNavigate();
@@ -60,6 +61,7 @@ const UsersManagement = () => {
   // delete dialog
   const [deleteTarget, setDeleteTarget] = useState<User | null>(null);
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const { can } = useAuth();
 
   // debounce searchTyping -> search
   useEffect(() => {
@@ -243,17 +245,18 @@ const UsersManagement = () => {
                   pages.
                 </Typography>
               </Box>
-
-              <Box>
-                <Button
-                  variant="contained"
-                  startIcon={<AddIcon />}
-                  onClick={openCreate}
-                  size="small"
-                >
-                  Add user
-                </Button>
-              </Box>
+              {can("roles:create") && (
+                <Box>
+                  <Button
+                    variant="contained"
+                    startIcon={<AddIcon />}
+                    onClick={openCreate}
+                    size="small"
+                  >
+                    Add user
+                  </Button>
+                </Box>
+              )}
             </Stack>
           </Grid>
 
@@ -343,21 +346,23 @@ const UsersManagement = () => {
       />
 
       {/* Delete confirmation */}
-      <Dialog open={deleteOpen} onClose={() => setDeleteOpen(false)}>
-        <DialogTitle>Delete user</DialogTitle>
-        <DialogContent dividers>
-          <Typography>
-            Are you sure you want to delete{" "}
-            <strong>{deleteTarget?.name}</strong>?
-          </Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setDeleteOpen(false)}>Cancel</Button>
-          <Button color="error" variant="contained" onClick={handleDelete}>
-            Delete
-          </Button>
-        </DialogActions>
-      </Dialog>
+      {can("roles:delete") && (
+        <Dialog open={deleteOpen} onClose={() => setDeleteOpen(false)}>
+          <DialogTitle>Delete user</DialogTitle>
+          <DialogContent dividers>
+            <Typography>
+              Are you sure you want to delete{" "}
+              <strong>{deleteTarget?.name}</strong>?
+            </Typography>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setDeleteOpen(false)}>Cancel</Button>
+            <Button color="error" variant="contained" onClick={handleDelete}>
+              Delete
+            </Button>
+          </DialogActions>
+        </Dialog>
+      )}
 
       <Snackbar
         open={snackbar.open}

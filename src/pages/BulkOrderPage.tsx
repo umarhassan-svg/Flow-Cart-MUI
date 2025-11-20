@@ -24,7 +24,7 @@ import PlaylistRemoveIcon from "@mui/icons-material/PlaylistRemove";
 import { useParseCSV } from "../hooks/useParseCSV";
 import CartItemCard from "../components/ui/CartItemCard";
 import productsService from "../services/product.service";
-import type { CartItem } from "../types/cart";
+import type { CartItem } from "../types/Cart";
 import LayoutMain from "../components/layout/layoutMain";
 import { useCart } from "../context/CartContext";
 import CustomDialogbox from "../components/ui/CustomDialogbox";

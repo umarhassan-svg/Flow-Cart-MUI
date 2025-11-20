@@ -15,7 +15,7 @@ import {
 import FilterListIcon from "@mui/icons-material/FilterList";
 import SearchIcon from "@mui/icons-material/Search";
 import productsService from "../services/product.service";
-import type { Product } from "../types/product";
+import type { Product } from "../types/Product";
 import BannerSlider, {
   type Banner,
 } from "../components/products/BannerSlider/BannerSlider";
@@ -27,6 +27,7 @@ import LayoutMain from "../components/layout/layoutMain";
 import { useNavigate } from "react-router-dom";
 
 import { useCart } from "../context/CartContext";
+import { useAuth } from "../context/AuthContext";
 
 const sampleBanners: Banner[] = [
   {
@@ -79,6 +80,7 @@ const ProductsListPage = () => {
   const [filters, setFilters] = useState<Filters | undefined>(undefined);
   const navigate = useNavigate();
   const { addToCart } = useCart();
+  const { can } = useAuth();
 
   // Debounce Effect
   useEffect(() => {
@@ -266,13 +268,16 @@ const ProductsListPage = () => {
                 <Button variant="text" size="small" onClick={loadFeatured}>
                   Refresh
                 </Button>
-                <Button
-                  variant="contained"
-                  size="small"
-                  onClick={handleBulkOrder}
-                >
-                  Bulk Order
-                </Button>
+                {/* Bulk Order Button // can("cart:bulk-order") */}
+                {can("cart:update") && (
+                  <Button
+                    variant="contained"
+                    size="small"
+                    onClick={handleBulkOrder}
+                  >
+                    Bulk Order
+                  </Button>
+                )}
               </Stack>
             </Stack>
 

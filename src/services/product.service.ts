@@ -1,6 +1,6 @@
 // src/services/products.service.ts
 import api from "./api/axios"; // adapt path if needed
-import type { Product,Review, ProductData, ProductQuery } from "../types/product";
+import type { Product,Review, ProductData, ProductQuery } from "../types/Product";
 
 
 const normalize = (p: ProductData): Product => ({

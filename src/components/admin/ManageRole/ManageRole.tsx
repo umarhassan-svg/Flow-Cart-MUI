@@ -13,20 +13,20 @@ import {
   TextField,
   Typography,
   FormHelperText,
-  IconButton,
   Stack,
   Checkbox,
   FormControlLabel,
   Grid,
   Divider,
+  MenuItem,
 } from "@mui/material";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import EditIcon from "@mui/icons-material/Edit";
 import CloseIcon from "@mui/icons-material/Close";
-import SelectAllIcon from "@mui/icons-material/SelectAll";
-import ClearAllIcon from "@mui/icons-material/ClearAll";
+
 import rolesService from "../../../services/roles.service";
 import type { Role } from "../../../types/Roles";
+import { useNav } from "../../../context/NavContext";
 
 type Props = {
   open: boolean;
@@ -52,6 +52,7 @@ const ManageRole = ({ open, mode, initialRole, onClose, onSaved }: Props) => {
 
   // small filter for permissions (helps find permission in long lists)
   const [permFilter, setPermFilter] = useState("");
+  const { allPagesList } = useNav();
 
   // load permissions (admin's master permissions list) when dialog opens
   useEffect(() => {
@@ -86,7 +87,15 @@ const ManageRole = ({ open, mode, initialRole, onClose, onSaved }: Props) => {
     setPermFilter("");
   }, [initialRole, open]);
 
-  const allPages = ["dashboard", "users", "roles", "products", "orders"]; // replace or load dynamically
+  const getlistofpages = () => {
+    const listofpages = [];
+    for (let i = 0; i < allPagesList.length; i++) {
+      listofpages.push(allPagesList[i].label);
+    }
+    return listofpages;
+  };
+
+  const allPages = getlistofpages(); // replace or load dynamically
 
   const availablePagesToShow = allPages.filter((p) => !pages.includes(p));
 
@@ -202,6 +211,10 @@ const ManageRole = ({ open, mode, initialRole, onClose, onSaved }: Props) => {
     }
   };
 
+  const toggleCategory = (category: string[]) => {
+    if (category.every((p) => permissions.includes(p))) clearCategory(category);
+    else selectCategory(category);
+  };
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="md">
       <DialogTitle>
@@ -257,14 +270,14 @@ const ManageRole = ({ open, mode, initialRole, onClose, onSaved }: Props) => {
               size="small"
             >
               {availablePagesToShow.length === 0 ? (
-                <option value="" disabled>
+                <MenuItem value="" disabled>
                   All pages assigned
-                </option>
+                </MenuItem>
               ) : (
                 availablePagesToShow.map((p) => (
-                  <option key={p} value={p}>
+                  <MenuItem key={p} value={p}>
                     {p}
-                  </option>
+                  </MenuItem>
                 ))
               )}
             </TextField>
@@ -321,23 +334,17 @@ const ManageRole = ({ open, mode, initialRole, onClose, onSaved }: Props) => {
                       >
                         {category}
                       </Typography>
-                      <Stack direction="row" spacing={1} alignItems="center">
-                        <IconButton
+                      <Stack direction="row" spacing={0} alignItems="center">
+                        <Typography variant="caption">
+                          {perms.every((p) => permissions.includes(p))
+                            ? "Clear"
+                            : "Select all"}
+                        </Typography>
+                        <Checkbox
                           size="small"
-                          aria-label={`select all ${category}`}
-                          onClick={() => selectCategory(perms)}
-                          title="Select all"
-                        >
-                          <SelectAllIcon fontSize="small" />
-                        </IconButton>
-                        <IconButton
-                          size="small"
-                          aria-label={`clear ${category}`}
-                          onClick={() => clearCategory(perms)}
-                          title="Clear"
-                        >
-                          <ClearAllIcon fontSize="small" />
-                        </IconButton>
+                          checked={perms.every((p) => permissions.includes(p))}
+                          onClick={() => toggleCategory(perms)}
+                        />
                       </Stack>
                     </Stack>
 
@@ -356,7 +363,9 @@ const ManageRole = ({ open, mode, initialRole, onClose, onSaved }: Props) => {
                                 />
                               }
                               label={
-                                <Typography variant="body2">{perm}</Typography>
+                                <Typography variant="body2">
+                                  {perm.split(":")[1]}
+                                </Typography>
                               }
                             />
                           </Grid>

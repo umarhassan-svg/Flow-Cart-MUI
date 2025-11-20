@@ -21,14 +21,14 @@ import {
   useTheme,
 } from "@mui/material";
 
+// ... [Keep your Type definitions (Column, colorType, RowAction, Props) exactly the same] ...
+
 export type Column<T> = {
-  field: string; // unique key for column
-  label?: string; // header label
+  field: string;
+  label?: string;
   align?: "left" | "right" | "center";
   width?: number | string;
-  // custom renderer for cell value, receives full row
   render?: (row: T) => React.ReactNode;
-  // optional accessor when `render` not provided; supports nested keys like 'user.name'
   accessor?: string;
 };
 
@@ -47,7 +47,6 @@ export type RowAction<T> = {
   icon: React.ReactNode;
   onClick: (row: T) => void;
   color?: colorType;
-  // optional predicate to hide action for a particular row
   visible?: (row: T) => boolean;
 };
 
@@ -55,17 +54,13 @@ type Props<T> = {
   columns: Column<T>[];
   rows: T[];
   loading?: boolean;
-  // pagination
   total: number;
-  page: number; // zero-based
+  page: number;
   rowsPerPage: number;
   onPageChange: (event: unknown, page: number) => void;
   onRowsPerPageChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  // actions column (optional)
   actions?: RowAction<T>[];
-  // custom full-row action renderer (if you need more control)
   rowActionsRender?: (row: T) => React.ReactNode;
-  // function to generate key for each row
   rowKey?: string | ((row: T) => string);
   emptyMessage?: string;
 };
@@ -109,8 +104,9 @@ function DataTableInner<T>({
 
   return (
     <Paper elevation={2} sx={{ borderRadius: 2, overflow: "hidden" }}>
+      {/* Enforce a max height on container if desired, or keep auto */}
       <TableContainer sx={{ minHeight: 120 }}>
-        <Table>
+        <Table stickyHeader>
           <TableHead>
             <TableRow sx={{ backgroundColor: theme.palette.background.paper }}>
               {columns.map((col) => (
@@ -122,7 +118,7 @@ function DataTableInner<T>({
                   {col.label ?? col.field}
                 </TableCell>
               ))}
-              {(actions || rowActionsRender) && (
+              {(actions?.length != 0 || rowActionsRender) && (
                 <TableCell align="right" sx={{ fontWeight: 700, width: 120 }}>
                   Actions
                 </TableCell>
@@ -157,6 +153,8 @@ function DataTableInner<T>({
               </TableRow>
             ) : (
               rows.map((row, rowIndex) => (
+                // FIXED: Set a fixed height here if you want strict strict rows,
+                // but usually preventing wrap below is enough.
                 <TableRow hover key={getRowKey(row, rowIndex)}>
                   {columns.map((col) => {
                     const value = col.render
@@ -166,38 +164,91 @@ function DataTableInner<T>({
                           col.accessor ?? col.field
                         );
 
-                    const content =
-                      Array.isArray(value) && value.length > 0 ? (
-                        <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
-                          {value.map((v: unknown, i: number) => (
+                    // --- LOGIC CHANGE STARTS HERE ---
+                    let content: React.ReactNode;
+
+                    if (Array.isArray(value) && value.length > 0) {
+                      // 1. LIMIT ARRAY ITEMS to keep row height consistent
+                      const MAX_ITEMS_TO_SHOW = 2;
+                      const visibleItems = value.slice(0, MAX_ITEMS_TO_SHOW);
+                      const remaining = value.length - MAX_ITEMS_TO_SHOW;
+
+                      content = (
+                        <Box
+                          sx={{
+                            display: "flex",
+                            gap: 1,
+                            alignItems: "center",
+                            // IMPORTANT: Prevent wrapping to keep row height fixed
+                            flexWrap: "nowrap",
+                            overflow: "hidden",
+                          }}
+                        >
+                          {visibleItems.map((v: unknown, i: number) => (
                             <Chip
                               key={String(v) + i}
                               label={String(v)}
                               size="small"
                             />
                           ))}
+                          {/* Show +N or ... if there are extra items */}
+                          {remaining > 0 && (
+                            <Tooltip title={`And ${remaining} more items...`}>
+                              <Chip
+                                label="..."
+                                size="small"
+                                variant="outlined"
+                                sx={{ minWidth: "30px" }}
+                              />
+                            </Tooltip>
+                          )}
                         </Box>
-                      ) : typeof value === "string" &&
-                        value &&
-                        col.field.toLowerCase().includes("name") ? (
+                      );
+                    } else if (
+                      typeof value === "string" &&
+                      value &&
+                      col.field.toLowerCase().includes("name")
+                    ) {
+                      content = (
                         <Stack direction="row" spacing={2} alignItems="center">
                           <Avatar sx={{ bgcolor: theme.palette.primary.main }}>
                             {String(value).charAt(0).toUpperCase()}
                           </Avatar>
-                          <Box>
-                            <Typography variant="subtitle2">
+                          <Box sx={{ minWidth: 0 }}>
+                            {" "}
+                            {/* minWidth 0 is needed for flex child truncation */}
+                            <Typography variant="subtitle2" noWrap>
                               {String(value)}
                             </Typography>
                           </Box>
                         </Stack>
-                      ) : (
-                        <Typography variant="body2">
+                      );
+                    } else {
+                      // Default text renderer
+                      content = (
+                        <Typography
+                          variant="body2"
+                          noWrap
+                          title={String(value ?? "")}
+                        >
                           {(value as string) ?? "-"}
                         </Typography>
                       );
+                    }
+                    // --- LOGIC CHANGE ENDS HERE ---
 
                     return (
-                      <TableCell key={col.field} align={col.align ?? "left"}>
+                      <TableCell
+                        key={col.field}
+                        align={col.align ?? "left"}
+                        // Optional: Enforce max width on cell to force truncation logic to kick in
+                        sx={{
+                          maxWidth: col.width ?? 200, // Fallback width if not defined
+                          whiteSpace: "nowrap", // Helps keep text in one line
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                        }}
+                      >
                         {content}
                       </TableCell>
                     );

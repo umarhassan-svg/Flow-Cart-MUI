@@ -1,4 +1,4 @@
-import type { CartItem } from "./cart";
+import type { CartItem } from "./Cart";
 
 export type OrderStatus =
   | "pending"

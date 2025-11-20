@@ -3,6 +3,7 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import DataTable, { type Column, type RowAction } from "../../ui/DataTable";
 import type { User } from "../../../types/User";
+import { useAuth } from "../../../context/AuthContext";
 
 type Props = {
   users: User[];
@@ -17,28 +18,33 @@ type Props = {
 };
 
 const UsersTable = (props: Props) => {
+  const { can } = useAuth();
   const columns: Column<User>[] = [
     { field: "name", label: "User", accessor: "name" },
     { field: "email", label: "Email", accessor: "email" },
     { field: "roles", label: "Roles", accessor: "roles" },
   ];
 
-  const actions: RowAction<User>[] = [
-    {
-      key: "edit",
-      label: "Edit",
-      icon: <EditIcon />,
-      onClick: (r) => props.onEdit?.(r),
-      color: "primary",
-    },
-    {
+  const actions: RowAction<User>[] = [];
+  if (can("roles:delete")) {
+    actions.push({
       key: "delete",
       label: "Delete",
       icon: <DeleteIcon />,
       onClick: (r) => props.onDelete?.(r),
       color: "error",
-    },
-  ];
+      visible: () => true,
+    });
+  }
+  if (can("roles:edit")) {
+    actions.push({
+      key: "edit",
+      label: "Edit",
+      icon: <EditIcon />,
+      onClick: (r) => props.onEdit?.(r),
+      color: "primary",
+    });
+  }
 
   return (
     <DataTable

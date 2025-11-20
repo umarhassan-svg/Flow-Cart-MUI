@@ -16,7 +16,7 @@ import {
   Pagination,
 } from "@mui/material";
 import productService from "../../../services/product.service";
-import type { Review } from "../../../types/product";
+import type { Review } from "../../../types/Product";
 
 type Props = {
   productId?: string | null;

@@ -13,7 +13,7 @@ import {
 import CheckoutForm from "../components/forms/CheckoutForm";
 import CartItemCard from "../components/ui/CartItemCard";
 import { useCart } from "../context/CartContext";
-import type { CartItem } from "../types/cart";
+import type { CartItem } from "../types/Cart";
 import LayoutMain from "../components/layout/layoutMain";
 
 const CheckoutPage = () => {

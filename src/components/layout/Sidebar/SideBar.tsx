@@ -12,8 +12,8 @@ import {
 } from "@mui/material";
 import DashboardOutlinedIcon from "@mui/icons-material/DashboardOutlined";
 import { useNavigate, useLocation } from "react-router-dom";
-import { useNav } from "../../context/NavContext";
-import type { NavItem } from "../../utils/nav";
+import { useNav } from "../../../context/NavContext";
+import type { NavItem } from "../../../utils/nav";
 
 const DRAWER_WIDTH = 260;
 

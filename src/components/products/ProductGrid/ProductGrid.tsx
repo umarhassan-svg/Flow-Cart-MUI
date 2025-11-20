@@ -2,7 +2,7 @@
 import React from "react";
 import { Grid, Box, CircularProgress } from "@mui/material";
 import ProductCard from "../ProductCard/Productcard";
-import type { Product } from "../../../types/product";
+import type { Product } from "../../../types/Product";
 
 type Props = {
   products: Product[];

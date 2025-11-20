@@ -1,5 +1,5 @@
 import { Stack, Avatar, Box, Typography } from "@mui/material";
-import type { CartItem } from "../../../types/cart";
+import type { CartItem } from "../../../types/Cart";
 
 export default function ShowOrderItem({ item }: { item: CartItem }) {
   const p = item.product;

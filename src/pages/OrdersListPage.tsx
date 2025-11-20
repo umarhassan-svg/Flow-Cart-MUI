@@ -177,10 +177,11 @@ export default function OrderList() {
     setPaymentPayload(order.payment ?? ({} as PaymentInfo));
     setPaymentOpen(true);
   };
+
   return (
     <>
       <LayoutMain>
-        {" "}
+        {loading && <>Loading...</>}
         <Box p={2}>
           <Stack
             direction="row"
@@ -206,16 +207,23 @@ export default function OrderList() {
             </Box>
           </Stack>
 
-          <Paper sx={{ p: 2, mb: 2 }}>
-            <Stack
-              direction={{ xs: "column", sm: "row" }}
-              spacing={2}
-              alignItems="center"
-            >
+          <Paper
+            sx={{
+              p: 2,
+              display: "flex",
+              gap: 2,
+              alignItems: "center",
+              flexDirection: { xs: "column", sm: "row" },
+              my: 2,
+            }}
+          >
+            <Box sx={{ flex: 1, minWidth: 0 }}>
               <TextField
+                variant="outlined"
                 size="small"
                 placeholder="Search by order #, customer"
                 value={query}
+                fullWidth
                 onChange={(e) => setQuery(e.target.value)}
                 InputProps={{
                   startAdornment: (
@@ -225,14 +233,7 @@ export default function OrderList() {
                   ),
                 }}
               />
-              <Stack direction="row" spacing={1}>
-                <Chip
-                  label={
-                    loading ? "Loading..." : `Total: ${searchedRows.length}`
-                  }
-                />
-              </Stack>
-            </Stack>
+            </Box>
           </Paper>
 
           <Paper>

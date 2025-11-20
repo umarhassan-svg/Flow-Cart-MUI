@@ -17,11 +17,11 @@ import MenuIcon from "@mui/icons-material/Menu";
 import ShoppingCartOutlinedIcon from "@mui/icons-material/ShoppingCartOutlined";
 import SettingsOutlinedIcon from "@mui/icons-material/SettingsOutlined";
 import LogoutOutlinedIcon from "@mui/icons-material/LogoutOutlined";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
-import type { NavItem } from "../../utils/nav";
-import { useNav } from "../../context/NavContext";
-import { useThemeContext } from "../../context/ThemeContext";
+import type { NavItem } from "../../../utils/nav";
+import { useNav } from "../../../context/NavContext";
+import { useThemeContext } from "../../../context/ThemeContext";
 import LightModeIcon from "@mui/icons-material/LightMode";
 
 type Props = {
@@ -47,7 +47,7 @@ const Navbar = ({
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const profileOpen = Boolean(anchorEl);
 
-  const { logout, user } = useAuth();
+  const { logout, user, can } = useAuth();
   const navigate = useNavigate();
   const { toggleTheme } = useThemeContext();
 
@@ -132,11 +132,13 @@ const Navbar = ({
 
         {/* Right icons */}
         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-          <IconButton aria-label="cart" onClick={onToggleCart} size="large">
-            <Badge badgeContent={cartCount} color="primary">
-              <ShoppingCartOutlinedIcon />
-            </Badge>
-          </IconButton>
+          {can("cart:update") && (
+            <IconButton aria-label="cart" onClick={onToggleCart} size="large">
+              <Badge badgeContent={cartCount} color="primary">
+                <ShoppingCartOutlinedIcon />
+              </Badge>
+            </IconButton>
+          )}
 
           <IconButton
             onClick={(e) => setAnchorEl(e.currentTarget)}

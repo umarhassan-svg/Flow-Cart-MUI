@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { Box, Skeleton, useTheme, Typography } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import productService from "../../../services/product.service";
-import type { Product } from "../../../types/product";
+import type { Product } from "../../../types/Product";
 import ProductCard from "../ProductCard/Productcard";
 
 type Props = {

@@ -6,8 +6,8 @@ import React, {
   useMemo,
   useState,
 } from "react";
-import type { Product } from "../types/product";
-import type { CartItem, CartTotals } from "../types/cart";
+import type { Product } from "../types/Product";
+import type { CartItem, CartTotals } from "../types/Cart";
 
 interface CartData {
   items: CartItem[];

@@ -21,7 +21,7 @@ import ShareIcon from "@mui/icons-material/Share";
 import LocalShippingIcon from "@mui/icons-material/LocalShipping";
 import LocalOfferIcon from "@mui/icons-material/LocalOffer";
 
-import type { Product } from "../../../types/product";
+import type { Product } from "../../../types/Product";
 
 /* styles tokens import */
 import {
@@ -44,6 +44,7 @@ import {
   detailsSx,
   titleSx,
 } from "./styles";
+import { useAuth } from "../../../context/AuthContext";
 
 type Props = {
   product: Product;
@@ -57,7 +58,7 @@ const ProductDetailBox = ({ product, onAddToCart, onBuyNow }: Props) => {
   const [index, setIndex] = useState<number>(0);
   const [qty, setQty] = useState<number>(1);
   const [imgLoaded, setImgLoaded] = useState<boolean>(false);
-
+  const { can } = useAuth();
   const primary = images[index] ?? "";
 
   const priceDisplay = useMemo(() => {
@@ -234,31 +235,34 @@ const ProductDetailBox = ({ product, onAddToCart, onBuyNow }: Props) => {
                     fullWidth
                   />
                 </Grid>
+                {(can("cart:update") || isOutOfStock) && (
+                  <Grid size={{ xs: 12, sm: "auto" }}>
+                    <Button
+                      variant="contained"
+                      startIcon={<AddShoppingCartIcon />}
+                      onClick={() => onAddToCart?.(product, qty)}
+                      disabled={isOutOfStock}
+                      sx={actionButtonSx}
+                      aria-label="Add to cart"
+                    >
+                      Add to cart
+                    </Button>
+                  </Grid>
+                )}
 
-                <Grid size={{ xs: 12, sm: "auto" }}>
-                  <Button
-                    variant="contained"
-                    startIcon={<AddShoppingCartIcon />}
-                    onClick={() => onAddToCart?.(product, qty)}
-                    disabled={isOutOfStock}
-                    sx={actionButtonSx}
-                    aria-label="Add to cart"
-                  >
-                    Add to cart
-                  </Button>
-                </Grid>
-
-                <Grid size={{ xs: 12, sm: "auto" }}>
-                  <Button
-                    variant="outlined"
-                    onClick={() => onBuyNow?.(product, qty)}
-                    disabled={isOutOfStock}
-                    sx={actionButtonSx}
-                    aria-label="Buy now"
-                  >
-                    Buy now
-                  </Button>
-                </Grid>
+                {can("orders:create") && !isOutOfStock && (
+                  <Grid size={{ xs: 12, sm: "auto" }}>
+                    <Button
+                      variant="outlined"
+                      onClick={() => onBuyNow?.(product, qty)}
+                      disabled={isOutOfStock}
+                      sx={actionButtonSx}
+                      aria-label="Buy now"
+                    >
+                      Buy now
+                    </Button>
+                  </Grid>
+                )}
 
                 <Grid size={{ xs: 12, sm: "auto" }} sx={iconsGroupSx}>
                   <Stack direction="row" spacing={0.5}>
