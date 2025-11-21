@@ -1,5 +1,4 @@
 // src/components/products/ProductsGrid.tsx
-import React from "react";
 import { Grid, Box, CircularProgress } from "@mui/material";
 import ProductCard from "../ProductCard/Productcard";
 import type { Product } from "../../../types/Product";

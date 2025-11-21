@@ -49,7 +49,7 @@ const Navbar = ({
 
   const { logout, user, can } = useAuth();
   const navigate = useNavigate();
-  const { toggleTheme } = useThemeContext();
+  const { mode, toggleTheme } = useThemeContext();
 
   // Nav comes from NavContext
   const { nav: allowedNavItems, loading: navLoading } = useNav();
@@ -163,7 +163,7 @@ const Navbar = ({
               <ListItemIcon>
                 <LightModeIcon fontSize="small" />
               </ListItemIcon>
-              Toggle Theme
+              {mode === "dark" ? "Light Mode" : "Dark Mode"}
             </MenuItem>
 
             <MenuItem

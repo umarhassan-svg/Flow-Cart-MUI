@@ -9,10 +9,18 @@ import {
   Divider,
   Paper,
   MenuItem,
+  Select,
 } from "@mui/material";
 
 import { useCart } from "../../context/CartContext";
 import CustomDialogbox from "../ui/CustomDialogbox";
+
+// NEW: import the createOrder helper
+import {
+  createOrderFromCheckout,
+  type CheckoutPayload,
+} from "../../utils/createOrder";
+import { useAuth } from "../../context/AuthContext";
 
 const COUNTRIES = [
   { code: "US", name: "United States" },
@@ -31,44 +39,73 @@ const CheckoutForm = () => {
     zipCode: "",
     country: "US",
     paymentMethod: "visa",
+    // card fields
+    cardNumber: "",
+    expiry: "",
+    cvc: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [openDialog, setOpenDialog] = useState(false);
   const [dialogMessage, setDialogMessage] = useState("");
+  const { user } = useAuth();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (items.length === 0) {
       alert("Your cart is empty. Please add items to checkout.");
       return;
     }
 
+    // Build a minimal payload matching createOrderFromCheckout
+    const payload: CheckoutPayload = {
+      userId: user?.id,
+      email: formData.email,
+      fullName: formData.fullName,
+      shipping: {
+        address1: formData.address1,
+        address2: formData.address2,
+        city: formData.city,
+        zipCode: formData.zipCode,
+        country: formData.country,
+      },
+      paymentMethod: formData.paymentMethod,
+      cardNumber: formData.cardNumber,
+      expiry: formData.expiry,
+      cvc: formData.cvc,
+    };
+
     setIsSubmitting(true);
 
-    // Simulate a successful checkout process
-    setTimeout(() => {
-      console.log("Submitting Order:", { formData, totals });
-      clearCart(); // Clear the cart after successful checkout
-      setIsSubmitting(false);
+    try {
+      const createdOrder = await createOrderFromCheckout(
+        payload,
+        items,
+        totals,
+        { currency: "USD" }
+      );
+
+      // success
+      clearCart();
+      setDialogMessage(
+        `Order placed successfully! Order #: ${
+          createdOrder.orderNumber ?? createdOrder.id
+        }`
+      );
       setOpenDialog(true);
-      setDialogMessage("Order placed successfully!");
-      // In a real application, you'd redirect to an order confirmation page
-    }, 2000);
-    //clear all fields
-    setFormData({
-      email: "",
-      fullName: "",
-      address1: "",
-      address2: "",
-      city: "",
-      zipCode: "",
-      country: "US",
-      paymentMethod: "visa",
-    });
+    } catch (err: unknown) {
+      console.error("Checkout failed:", err);
+      const message =
+        err instanceof Error ? err.message : "Failed to place order";
+      setDialogMessage(`Order failed: ${message}`);
+      setOpenDialog(true);
+    } finally {
+      setIsSubmitting(false);
+      // Keep fields in case user needs to retry — but you can clear on success if you prefer
+    }
   };
 
   return (
@@ -177,14 +214,34 @@ const CheckoutForm = () => {
             <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1 }}>
               Payment Method
             </Typography>
+            <Select
+              required
+              fullWidth
+              value={formData.paymentMethod}
+              onChange={(e) =>
+                handleChange(e as React.ChangeEvent<HTMLInputElement>)
+              }
+              size="small"
+              name="paymentMethod"
+              label="Payment Method"
+              margin="none"
+              inputProps={{ "aria-label": "Payment Method" }}
+            >
+              <MenuItem value="Credit Card">Credit Card</MenuItem>
+              <MenuItem value="PayPal">PayPal</MenuItem>
+              <MenuItem value="Bitcoin">Bitcoin</MenuItem>
+              <MenuItem value="Ethereum">Ethereum</MenuItem>
+            </Select>
             <TextField
               required
               fullWidth
               label="Card Number"
               name="cardNumber"
+              value={formData.cardNumber}
+              onChange={handleChange}
               margin="normal"
               size="small"
-              // Placeholder for actual card number input
+              inputProps={{ inputMode: "numeric", pattern: "\\d*" }}
             />
             <Stack direction="row" spacing={2}>
               <TextField
@@ -192,6 +249,8 @@ const CheckoutForm = () => {
                 fullWidth
                 label="Expiry Date (MM/YY)"
                 name="expiry"
+                value={formData.expiry}
+                onChange={handleChange}
                 margin="normal"
                 size="small"
               />
@@ -200,6 +259,8 @@ const CheckoutForm = () => {
                 fullWidth
                 label="CVC"
                 name="cvc"
+                value={formData.cvc}
+                onChange={handleChange}
                 margin="normal"
                 size="small"
               />

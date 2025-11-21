@@ -1,5 +1,5 @@
 // src/components/SideBar.tsx
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Box,
   Divider,
@@ -31,8 +31,7 @@ const DEFAULT_NAV: NavItem[] = [
     icon: <DashboardOutlinedIcon />,
   },
 ];
-
-export default function SideBar({ open, onClose, initialActive }: Props) {
+const SideBar = ({ open, onClose, initialActive }: Props) => {
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -135,4 +134,6 @@ export default function SideBar({ open, onClose, initialActive }: Props) {
       </Box>
     </Drawer>
   );
-}
+};
+
+export default SideBar;

@@ -69,6 +69,15 @@ const RolesTable = ({
   // actions
 
   const actions: RowAction<Role>[] = [];
+  if (can("roles:update")) {
+    actions.push({
+      key: "edit",
+      label: "Edit",
+      icon: <EditIcon />,
+      onClick: (r) => onEdit(r),
+      color: "primary",
+    });
+  }
 
   if (can("roles:delete")) {
     actions.push({
@@ -78,15 +87,6 @@ const RolesTable = ({
       onClick: (r) => onDelete(r),
       color: "error",
       visible: () => true,
-    });
-  }
-  if (can("roles:edit")) {
-    actions.push({
-      key: "edit",
-      label: "Edit",
-      icon: <EditIcon />,
-      onClick: (r) => onEdit(r),
-      color: "primary",
     });
   }
 

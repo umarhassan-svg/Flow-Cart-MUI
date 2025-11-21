@@ -1,11 +1,16 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // src/components/ui/DataTable.tsx
-import React from "react";
+import React, { useState } from "react";
 import {
   Avatar,
   Box,
+  Button, // Added
   Chip,
   CircularProgress,
+  Dialog, // Added
+  DialogActions, // Added
+  DialogContent, // Added
+  DialogTitle, // Added
   IconButton,
   Paper,
   Stack,
@@ -95,6 +100,26 @@ function DataTableInner<T>({
 }: Props<T>) {
   const theme = useTheme();
 
+  // --- NEW STATE FOR DIALOG ---
+  const [dialogConfig, setDialogConfig] = useState<{
+    open: boolean;
+    title: string;
+    items: any[];
+  }>({
+    open: false,
+    title: "",
+    items: [],
+  });
+
+  const handleOpenDialog = (title: string, items: any[]) => {
+    setDialogConfig({ open: true, title, items });
+  };
+
+  const handleCloseDialog = () => {
+    setDialogConfig((prev) => ({ ...prev, open: false }));
+  };
+  // ---------------------------
+
   const getRowKey = (row: T, idx: number): string =>
     typeof rowKey === "function"
       ? rowKey(row)
@@ -153,8 +178,6 @@ function DataTableInner<T>({
               </TableRow>
             ) : (
               rows.map((row, rowIndex) => (
-                // FIXED: Set a fixed height here if you want strict strict rows,
-                // but usually preventing wrap below is enough.
                 <TableRow hover key={getRowKey(row, rowIndex)}>
                   {columns.map((col) => {
                     const value = col.render
@@ -164,7 +187,6 @@ function DataTableInner<T>({
                           col.accessor ?? col.field
                         );
 
-                    // --- LOGIC CHANGE STARTS HERE ---
                     let content: React.ReactNode;
 
                     if (Array.isArray(value) && value.length > 0) {
@@ -179,7 +201,6 @@ function DataTableInner<T>({
                             display: "flex",
                             gap: 1,
                             alignItems: "center",
-                            // IMPORTANT: Prevent wrapping to keep row height fixed
                             flexWrap: "nowrap",
                             overflow: "hidden",
                           }}
@@ -191,14 +212,28 @@ function DataTableInner<T>({
                               size="small"
                             />
                           ))}
-                          {/* Show +N or ... if there are extra items */}
+
+                          {/* CLICKABLE CHIP FOR HIDDEN ITEMS */}
                           {remaining > 0 && (
-                            <Tooltip title={`And ${remaining} more items...`}>
+                            <Tooltip title="Click to view all items">
                               <Chip
-                                label="..."
+                                label={`+${remaining}`} // Changed from "..." to "+N" for better UX
                                 size="small"
                                 variant="outlined"
-                                sx={{ minWidth: "30px" }}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleOpenDialog(
+                                    col.label ?? col.field,
+                                    value
+                                  );
+                                }}
+                                sx={{
+                                  minWidth: "30px",
+                                  cursor: "pointer",
+                                  "&:hover": {
+                                    backgroundColor: theme.palette.action.hover,
+                                  },
+                                }}
                               />
                             </Tooltip>
                           )}
@@ -215,8 +250,6 @@ function DataTableInner<T>({
                             {String(value).charAt(0).toUpperCase()}
                           </Avatar>
                           <Box sx={{ minWidth: 0 }}>
-                            {" "}
-                            {/* minWidth 0 is needed for flex child truncation */}
                             <Typography variant="subtitle2" noWrap>
                               {String(value)}
                             </Typography>
@@ -224,7 +257,6 @@ function DataTableInner<T>({
                         </Stack>
                       );
                     } else {
-                      // Default text renderer
                       content = (
                         <Typography
                           variant="body2"
@@ -235,16 +267,14 @@ function DataTableInner<T>({
                         </Typography>
                       );
                     }
-                    // --- LOGIC CHANGE ENDS HERE ---
 
                     return (
                       <TableCell
                         key={col.field}
                         align={col.align ?? "left"}
-                        // Optional: Enforce max width on cell to force truncation logic to kick in
                         sx={{
-                          maxWidth: col.width ?? 200, // Fallback width if not defined
-                          whiteSpace: "nowrap", // Helps keep text in one line
+                          maxWidth: col.width ?? 200,
+                          whiteSpace: "nowrap",
                           overflow: "hidden",
                           textOverflow: "ellipsis",
                         }}
@@ -293,6 +323,37 @@ function DataTableInner<T>({
         onRowsPerPageChange={onRowsPerPageChange}
         rowsPerPageOptions={[5, 10, 20, 50]}
       />
+
+      {/* --- DIALOG BOX FOR SHOWING COMPLETE THINGS --- */}
+      <Dialog
+        open={dialogConfig.open}
+        onClose={handleCloseDialog}
+        fullWidth
+        maxWidth="sm"
+      >
+        <DialogTitle
+          sx={{ borderBottom: `1px solid ${theme.palette.divider}` }}
+        >
+          {dialogConfig.title}
+        </DialogTitle>
+        <DialogContent sx={{ mt: 2 }}>
+          <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
+            {dialogConfig.items.map((item, index) => (
+              <Chip
+                key={index}
+                label={String(item)}
+                // Optional: Make these copyable or stylized differently in the dialog
+              />
+            ))}
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseDialog} color="primary">
+            Close
+          </Button>
+        </DialogActions>
+      </Dialog>
+      {/* ---------------------------------------------- */}
     </Paper>
   );
 }

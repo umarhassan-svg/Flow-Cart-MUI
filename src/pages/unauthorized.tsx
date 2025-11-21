@@ -5,7 +5,13 @@ const Unauthorized = () => {
   return (
     <>
       <LayoutMain>
-        <Typography variant="h1">Unauthorized</Typography>
+        <Typography
+          variant="h1"
+          align="center"
+          sx={{ mt: 10, mb: 10, fontSize: "2.5rem", fontWeight: "bold" }}
+        >
+          Unauthorized
+        </Typography>
       </LayoutMain>
     </>
   );

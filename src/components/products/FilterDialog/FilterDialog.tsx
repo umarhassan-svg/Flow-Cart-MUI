@@ -1,5 +1,5 @@
 // src/components/products/FilterDialog.tsx
-import React, { useState } from "react";
+import { useState } from "react";
 import {
   Box,
   Button,

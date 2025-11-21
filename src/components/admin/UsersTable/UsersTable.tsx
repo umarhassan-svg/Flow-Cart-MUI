@@ -26,6 +26,16 @@ const UsersTable = (props: Props) => {
   ];
 
   const actions: RowAction<User>[] = [];
+  if (can("roles:update")) {
+    actions.push({
+      key: "edit",
+      label: "Edit",
+      icon: <EditIcon />,
+      onClick: (r) => props.onEdit?.(r),
+      color: "primary",
+    });
+  }
+
   if (can("roles:delete")) {
     actions.push({
       key: "delete",
@@ -34,15 +44,6 @@ const UsersTable = (props: Props) => {
       onClick: (r) => props.onDelete?.(r),
       color: "error",
       visible: () => true,
-    });
-  }
-  if (can("roles:edit")) {
-    actions.push({
-      key: "edit",
-      label: "Edit",
-      icon: <EditIcon />,
-      onClick: (r) => props.onEdit?.(r),
-      color: "primary",
     });
   }
 

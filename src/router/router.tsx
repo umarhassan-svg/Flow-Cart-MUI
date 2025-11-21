@@ -16,7 +16,7 @@ import ProductDetailPage from "../pages/ProductDetailPage";
 import CheckOutPage from "../pages/CheckOutPage";
 import BulkOrderPage from "../pages/BulkOrderPage";
 import { NavProvider } from "../context/NavContext";
-import OrderList from "../pages/OrdersListPage";
+import OrdersListPage from "../pages/OrdersListPage";
 
 /**
  * Routes:
@@ -97,7 +97,7 @@ const router = createBrowserRouter([
         path: "/orders",
         element: (
           <PrivateRoute requiredPermissions={["orders:read"]}>
-            <OrderList />
+            <OrdersListPage />
           </PrivateRoute>
         ),
       },
@@ -106,7 +106,7 @@ const router = createBrowserRouter([
       {
         path: "/dashboard",
         element: (
-          <PrivateRoute requiredPermissions={["dashboard:view"]}>
+          <PrivateRoute requiredPermissions={["dashboard:read"]}>
             <AdminDashboard />
           </PrivateRoute>
         ),
@@ -179,11 +179,10 @@ const router = createBrowserRouter([
           </PrivateRoute>
         ),
       },
+      // Unauthorized
+      { path: "/unauthorized", element: <Unauthorized /> },
     ],
   },
-
-  // Unauthorized
-  { path: "/unauthorized", element: <Unauthorized /> },
 
   // Fallback
   { path: "*", element: <Navigate to="/login" replace /> },

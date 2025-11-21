@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useEffect, useState, useMemo } from "react";
 import {
   Box,
@@ -17,6 +18,7 @@ import {
   TextField,
   InputAdornment,
   Alert,
+  // Add Snackbar components for better error display (optional)
 } from "@mui/material";
 
 import SearchIcon from "@mui/icons-material/Search";
@@ -31,10 +33,11 @@ import LayoutMain from "../components/layout/layoutMain";
 import type { PaymentInfo } from "../components/order/ViewPayment/ViewPayment";
 import OrderDetailsDialog from "../components/order/OrderDetailsDialog/OrderDetailsDialog";
 
-export default function OrderList() {
+const OrdersListPage = () => {
   const { can, user } = useAuth();
   const [rows, setRows] = useState<Order[]>([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null); // State for API errors
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [query, setQuery] = useState("");
@@ -52,18 +55,21 @@ export default function OrderList() {
     undefined
   );
 
+  // --- Initial Data Fetch ---
   useEffect(() => {
     let mounted = true;
     setLoading(true);
+    setError(null); // Clear previous errors
 
     (async () => {
       try {
         const data = await ordersService.getAll();
         if (!mounted) return; // component unmounted -> ignore
         setRows(data);
-      } catch (err) {
+      } catch (err: unknown) {
         console.error("Failed to load orders", err);
-        // optionally set an error state
+        // Set user-friendly error message
+        setError((err as string) || "Failed to load orders from API.");
       } finally {
         if (mounted) setLoading(false);
       }
@@ -72,28 +78,20 @@ export default function OrderList() {
     return () => {
       mounted = false;
     };
-  }, []); // empty deps -> runs only on mount / reload
+  }, []);
 
-  // --- place inside your component, replacing `filtered` and `pageRows` logic ---
-
-  // helper: treat users with any staff-level permission as staff (see note)
+  // --- Utility Hooks (Correctly Implemented) ---
   const isStaff = useMemo(() => {
-    // Adjust which permissions you consider "staff" in your app
+    // Check if the user has any staff-level permission for orders
     return (
-      can("orders:update") ||
-      can("orders:delete") ||
-      can("orders:fulfill") ||
-      can("orders:create")
+      can("orders:update") || can("orders:delete") || can("orders:fulfill")
     );
   }, [can]);
 
-  // Visible rows = either all (for staff) or only the customer's orders.
-  // Also handle common mismatch where order.customerId uses a different id scheme:
-  // we'll accept match by customerId === user.id OR customerEmail === user.email.
   const visibleRows = useMemo(() => {
-    if (!can("orders:read")) return []; // no permission -> nothing
+    if (!can("orders:read")) return [];
 
-    if (isStaff) return rows; // staff: see all orders
+    if (isStaff) return rows;
 
     // customer: only their orders
     if (!user) return [];
@@ -106,7 +104,6 @@ export default function OrderList() {
     );
   }, [rows, user, can, isStaff]);
 
-  // Now apply search query on top of visibleRows
   const searchedRows = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return visibleRows;
@@ -118,7 +115,6 @@ export default function OrderList() {
     );
   }, [visibleRows, query]);
 
-  // Reset page when query or visibleRows length changes so user doesn't get empty page
   useEffect(() => {
     setPage(0);
   }, [query, visibleRows.length]);
@@ -128,6 +124,7 @@ export default function OrderList() {
     page * rowsPerPage + rowsPerPage
   );
 
+  // --- Pagination Handlers ---
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleChangePage = (_: any, newPage: number) => setPage(newPage);
   const handleChangeRowsPerPage = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -141,36 +138,96 @@ export default function OrderList() {
     setManageOpen(true);
   };
 
+  // --- CRUD Action Handlers with API Error Handling ---
+
   const handleSaveOrder = async (partial: Partial<Order>) => {
     if (!partial) return;
-    if (partial.id) {
-      const updated = await ordersService.update(
-        partial.id,
-        partial as Partial<Order>
+    setLoading(true);
+    setError(null);
+    try {
+      if (partial.id) {
+        // UPDATE
+        const updated = await ordersService.update(
+          partial.id,
+          partial as Partial<Order>
+        );
+        if (updated)
+          setRows((r) => r.map((x) => (x.id === updated.id ? updated : x)));
+      } else {
+        // CREATE
+        const created = await ordersService.create(partial as Partial<Order>);
+        setRows((r) => [created, ...r]);
+      }
+      setManageOpen(false); // Close dialog on success
+    } catch (err: any) {
+      console.error("Failed to save order:", err);
+      setError(
+        (err.message as string) ||
+          "Failed to save order. Check network connection."
       );
-      if (updated)
-        setRows((r) => r.map((x) => (x.id === updated.id ? updated : x)));
-    } else {
-      const created = await ordersService.create(partial as Partial<Order>);
-      setRows((r) => [created, ...r]);
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleDelete = async (order: Order) => {
-    const ok = await ordersService.delete(order.id);
-    if (ok) setRows((r) => r.filter((x) => x.id !== order.id));
+    setLoading(true);
+    setError(null);
+    try {
+      const ok = await ordersService.delete(order.id);
+      if (ok) {
+        setRows((r) => r.filter((x) => x.id !== order.id));
+      } else {
+        setError(
+          `Failed to delete order ${order.orderNumber}. It might not exist.`
+        );
+      }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (err: any) {
+      console.error("Failed to delete order:", err);
+      setError(err.message || "Failed to delete order due to an API error.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleCancel = async (order: Order) => {
-    const updated = await ordersService.cancel(order.id);
-    if (updated)
-      setRows((r) => r.map((x) => (x.id === updated.id ? updated : x)));
+    setLoading(true);
+    setError(null);
+    try {
+      const updated = await ordersService.cancel(order.id);
+      if (updated)
+        setRows((r) => r.map((x) => (x.id === updated.id ? updated : x)));
+      else
+        setError(
+          `Failed to cancel order ${order.orderNumber}. Order not found or already cancelled.`
+        );
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (err: any) {
+      console.error("Failed to cancel order:", err);
+      setError(err.message || "Failed to cancel order due to an API error.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleFulfill = async (order: Order) => {
-    const updated = await ordersService.fulfill(order.id);
-    if (updated)
-      setRows((r) => r.map((x) => (x.id === updated.id ? updated : x)));
+    setLoading(true);
+    setError(null);
+    try {
+      const updated = await ordersService.fulfill(order.id);
+      if (updated)
+        setRows((r) => r.map((x) => (x.id === updated.id ? updated : x)));
+      else
+        setError(
+          `Failed to fulfill order ${order.orderNumber}. Order not found.`
+        );
+    } catch (err: any) {
+      console.error("Failed to fulfill order:", err);
+      setError(err.message || "Failed to fulfill order due to an API error.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleViewPayment = (order: Order) => {
@@ -181,7 +238,13 @@ export default function OrderList() {
   return (
     <>
       <LayoutMain>
-        {loading && <>Loading...</>}
+        {/* Display Loading Indicator */}
+        {loading && (
+          <Alert severity="info" sx={{ m: 2 }}>
+            Loading orders...
+          </Alert>
+        )}
+
         <Box p={2}>
           <Stack
             direction="row"
@@ -195,10 +258,10 @@ export default function OrderList() {
                 fontWeight="bold"
                 sx={{
                   fontSize: {
-                    xs: "1.25rem", // extra-small screens (mobile)
-                    sm: "1.5rem", // small screens
-                    md: "1.75rem", // medium screens
-                    lg: "2rem", // large screens
+                    xs: "1.25rem",
+                    sm: "1.5rem",
+                    md: "1.75rem",
+                    lg: "2rem",
                   },
                 }}
               >
@@ -207,6 +270,18 @@ export default function OrderList() {
             </Box>
           </Stack>
 
+          {/* Display API Error Message */}
+          {error && (
+            <Alert
+              severity="error"
+              onClose={() => setError(null)}
+              sx={{ mb: 2 }}
+            >
+              Error: {error}
+            </Alert>
+          )}
+
+          {/* Search Bar */}
           <Paper
             sx={{
               p: 2,
@@ -231,11 +306,20 @@ export default function OrderList() {
                       <SearchIcon />
                     </InputAdornment>
                   ),
+                  // Added a clear button for search
+                  endAdornment: query ? (
+                    <InputAdornment position="end">
+                      <IconButton onClick={() => setQuery("")} size="small">
+                        <CancelIcon />
+                      </IconButton>
+                    </InputAdornment>
+                  ) : null,
                 }}
               />
             </Box>
           </Paper>
 
+          {/* Table Display */}
           <Paper>
             <TableContainer>
               <Table>
@@ -280,7 +364,10 @@ export default function OrderList() {
                               ? "default"
                               : row.status === "fulfilled"
                               ? "success"
-                              : "primary"
+                              : row.status === "pending" ||
+                                row.status === "confirmed"
+                              ? "warning"
+                              : "primary" // processing/shipped
                           }
                         />
                       </TableCell>
@@ -291,15 +378,17 @@ export default function OrderList() {
                           justifyContent="flex-end"
                           alignItems="center"
                         >
+                          {/* Quick Cancel Button for the Customer */}
                           {can("orders:cancel") &&
                             user?.id === row.customerId &&
-                            row.status !== "cancelled" && (
+                            (row.status === "pending" ||
+                              row.status === "confirmed") && (
                               <Tooltip title="Cancel order">
                                 <IconButton
                                   size="small"
                                   onClick={() => handleCancel(row)}
                                 >
-                                  <CancelIcon />
+                                  <CancelIcon color="error" />
                                 </IconButton>
                               </Tooltip>
                             )}
@@ -334,53 +423,58 @@ export default function OrderList() {
               rowsPerPageOptions={[5, 10, 25]}
             />
           </Paper>
-
-          <ManageOrder
-            open={manageOpen}
-            onClose={() => setManageOpen(false)}
-            order={activeOrder}
-            mode={manageMode}
-            onSave={handleSaveOrder}
-          />
-
-          <ViewPayment
-            open={paymentOpen}
-            onClose={() => setPaymentOpen(false)}
-            payment={paymentPayload}
-          />
-
-          <OrderDetailsDialog
-            open={detailsOpen}
-            onClose={() => {
-              setDetailsOpen(false);
-              setDetailsOrder(undefined);
-            }}
-            order={detailsOrder}
-            onEdit={(o) => {
-              setDetailsOpen(false);
-              openEdit(o);
-            }}
-            onCancel={async (o) => {
-              await handleCancel(o);
-              setDetailsOpen(false);
-            }}
-            onFulfill={async (o) => {
-              await handleFulfill(o);
-              setDetailsOpen(false);
-            }}
-            onViewPayment={(o) => handleViewPayment(o)}
-          />
         </Box>
+
+        {/* Bottom Messages */}
         {!can("orders:read") ? (
-          <Alert severity="warning">
+          <Alert severity="warning" sx={{ m: 2 }}>
             You do not have permission to view orders.
           </Alert>
-        ) : searchedRows.length === 0 ? (
+        ) : !loading && searchedRows.length === 0 ? (
           <Typography sx={{ p: 2 }} color="text.secondary">
-            No orders found.
+            No orders found matching your criteria.
           </Typography>
         ) : null}
+
+        {/* Modals/Dialogs */}
+        <ManageOrder
+          open={manageOpen}
+          onClose={() => setManageOpen(false)}
+          order={activeOrder}
+          mode={manageMode}
+          onSave={handleSaveOrder}
+        />
+
+        <ViewPayment
+          open={paymentOpen}
+          onClose={() => setPaymentOpen(false)}
+          payment={paymentPayload}
+        />
+
+        <OrderDetailsDialog
+          open={detailsOpen}
+          onClose={() => {
+            setDetailsOpen(false);
+            setDetailsOrder(undefined);
+          }}
+          order={detailsOrder}
+          onEdit={(o) => {
+            setDetailsOpen(false);
+            openEdit(o);
+          }}
+          onCancel={async (o) => {
+            await handleCancel(o);
+            setDetailsOpen(false);
+          }}
+          onFulfill={async (o) => {
+            await handleFulfill(o);
+            setDetailsOpen(false);
+          }}
+          onViewPayment={(o) => handleViewPayment(o)}
+        />
       </LayoutMain>
     </>
   );
-}
+};
+
+export default OrdersListPage;
