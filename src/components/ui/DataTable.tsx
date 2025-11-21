@@ -23,6 +23,7 @@ import {
   TableRow,
   Tooltip,
   Typography,
+  useMediaQuery,
   useTheme,
 } from "@mui/material";
 
@@ -99,6 +100,9 @@ function DataTableInner<T>({
   emptyMessage = "No records found",
 }: Props<T>) {
   const theme = useTheme();
+  const isSm = useMediaQuery(theme.breakpoints.down("sm"));
+  const isXs = useMediaQuery(theme.breakpoints.down("xs"));
+  const isMd = useMediaQuery(theme.breakpoints.down("md"));
 
   // --- NEW STATE FOR DIALOG ---
   const [dialogConfig, setDialogConfig] = useState<{
@@ -133,7 +137,9 @@ function DataTableInner<T>({
       <TableContainer sx={{ minHeight: 120 }}>
         <Table stickyHeader>
           <TableHead>
-            <TableRow sx={{ backgroundColor: theme.palette.background.paper }}>
+            <TableRow
+              sx={{ backgroundColor: theme.palette.background.default }}
+            >
               {columns.map((col) => (
                 <TableCell
                   key={col.field}
@@ -191,7 +197,7 @@ function DataTableInner<T>({
 
                     if (Array.isArray(value) && value.length > 0) {
                       // 1. LIMIT ARRAY ITEMS to keep row height consistent
-                      const MAX_ITEMS_TO_SHOW = 2;
+                      const MAX_ITEMS_TO_SHOW = isSm || isXs || isMd ? 1 : 2;
                       const visibleItems = value.slice(0, MAX_ITEMS_TO_SHOW);
                       const remaining = value.length - MAX_ITEMS_TO_SHOW;
 

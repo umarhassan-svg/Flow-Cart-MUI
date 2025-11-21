@@ -42,7 +42,7 @@ const LoginForm = () => {
   const [formError, setFormError] = useState<string | null>(null);
 
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { user, login } = useAuth();
 
   function validate(): boolean {
     const errors: Partial<Record<keyof LoginValues, string>> = {};
@@ -64,8 +64,13 @@ const LoginForm = () => {
     if (!validate()) return;
     setLoading(true);
     try {
-      await login(values.email, values.password);
-      navigate("/home");
+      const u = await login(values.email, values.password);
+      // go to available page
+      const allowedpagepath: string = u?.allowedPages?.[0]?.path ?? "/home";
+
+      console.log("User logged in:", user?.allowedPages?.[0]?.path);
+
+      navigate(allowedpagepath);
     } catch (err: unknown) {
       // map an error message (server / thrown)
       const message =
@@ -104,7 +109,7 @@ const LoginForm = () => {
         borderRadius: 2,
       }}
     >
-      <Box sx={{ width: "100%" }}>
+      <Box sx={{ width: "100%", height: "100%" }}>
         <Stack spacing={2}>
           {/* header */}
           <Stack direction="row" spacing={1} alignItems="center">

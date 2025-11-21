@@ -179,9 +179,6 @@ export const AdminDashboard = () => {
                   p: 2,
                   borderRadius: 3,
                   height: "100%",
-                  display: "flex",
-                  flexDirection: "column",
-                  justifyContent: "center",
                 }}
               >
                 <Typography variant="h6" fontWeight="bold" sx={{ mb: 2 }}>

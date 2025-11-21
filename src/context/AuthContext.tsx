@@ -14,7 +14,7 @@ type AuthContextType = {
   user: User | null;
   isAuthenticated: boolean;
   loading: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<User>;
   logout: () => Promise<void>;
   refresh: () => Promise<void>;
   can: (permission: string) => boolean;
@@ -65,11 +65,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     };
   }, []);
 
-  const login = async (email: string, password: string): Promise<void> => {
+  const login = async (email: string, password: string): Promise<User> => {
     setLoading(true);
     try {
       const u = await authService.login(email, password);
+      console.log("User logged in:", u);
       setUser(u ?? null);
+      return u ?? null;
     } finally {
       setLoading(false);
     }
@@ -98,7 +100,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     }
   };
   const can = (p: string) => {
-    console.log(user);
     if (!user) return false;
     return user.effectivePermissions?.includes(p) || false;
   };

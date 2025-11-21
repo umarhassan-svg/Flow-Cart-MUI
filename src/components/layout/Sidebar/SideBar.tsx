@@ -38,9 +38,7 @@ const SideBar = ({ open, onClose, initialActive }: Props) => {
   const { nav: ctxNav, loading } = useNav();
 
   const [navItems, setNavItems] = useState<NavItem[]>(DEFAULT_NAV);
-  const [active, setActive] = useState<string>(
-    initialActive ?? DEFAULT_NAV[0].key
-  );
+  const [active, setActive] = useState<string>(initialActive || "");
 
   const keyFromPath = (p: string) => {
     const parts = p.split("/").filter(Boolean);

@@ -4,7 +4,7 @@ import { createTheme } from "@mui/material/styles";
 /**
  * Warm — earthy, friendly light theme
  */
-export const warmLight = createTheme({
+export const lightTheme = createTheme({
   palette: {
     mode: "light",
     primary: {
@@ -84,7 +84,7 @@ export const warmLight = createTheme({
 /**
  * Cold — crisp, icy dark theme
  */
-export const coldDark = createTheme({
+export const darkTheme = createTheme({
   palette: {
     mode: "dark",
     primary: {

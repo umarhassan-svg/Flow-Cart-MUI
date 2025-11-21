@@ -221,19 +221,21 @@ const ProductDetailBox = ({ product, onAddToCart, onBuyNow }: Props) => {
                 sx={buyGridContainerSx}
               >
                 <Grid size={{ xs: 12, sm: "auto" }} sx={qtyGridItemSx}>
-                  <TextField
-                    label="Qty"
-                    type="number"
-                    size="small"
-                    value={qty}
-                    onChange={handleQtyChange}
-                    inputProps={{
-                      min: 1,
-                      max: product.stock ?? 9999,
-                      "aria-label": "Quantity",
-                    }}
-                    fullWidth
-                  />
+                  {can("cart:update") || isOutOfStock ? (
+                    <TextField
+                      label="Qty"
+                      type="number"
+                      size="small"
+                      value={qty}
+                      onChange={handleQtyChange}
+                      inputProps={{
+                        min: 1,
+                        max: product.stock ?? 9999,
+                        "aria-label": "Quantity",
+                      }}
+                      fullWidth
+                    />
+                  ) : null}
                 </Grid>
                 {(can("cart:update") || isOutOfStock) && (
                   <Grid size={{ xs: 12, sm: "auto" }}>

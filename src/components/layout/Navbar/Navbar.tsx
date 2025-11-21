@@ -18,18 +18,19 @@ import ShoppingCartOutlinedIcon from "@mui/icons-material/ShoppingCartOutlined";
 import SettingsOutlinedIcon from "@mui/icons-material/SettingsOutlined";
 import LogoutOutlinedIcon from "@mui/icons-material/LogoutOutlined";
 import { useAuth } from "../../../context/AuthContext";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom"; // 1. Import useLocation
 import type { NavItem } from "../../../utils/nav";
 import { useNav } from "../../../context/NavContext";
 import { useThemeContext } from "../../../context/ThemeContext";
 import LightModeIcon from "@mui/icons-material/LightMode";
 
 type Props = {
-  onToggleSidebar: () => void; // collapses on desktop / opens on mobile
+  onToggleSidebar: () => void;
   onToggleCart?: () => void;
   cartCount?: number;
   onSettings?: () => void;
   openSidebar?: boolean;
+  // initialActive is no longer needed, removed
 };
 
 const ALL_NAV: NavItem[] = [
@@ -49,6 +50,7 @@ const Navbar = ({
 
   const { logout, user, can } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation(); // 2. Hook into the current URL
   const { mode, toggleTheme } = useThemeContext();
 
   // Nav comes from NavContext
@@ -62,16 +64,12 @@ const Navbar = ({
     }
   };
 
-  // Decide which middle nav items to show:
-  // - while loading -> show ALL_NAV for better UX
-  // - when loaded: if list non-empty show allowedNavItems (normalized), else fallback to ALL_NAV
   const middleNavToShow = navLoading ? ALL_NAV : allowedNavItems ?? ALL_NAV;
 
   const handleMiddleNav = (path: string) => {
     navigate(path);
   };
 
-  // helper to show initial from user name if available
   const avatarInitial =
     user?.name && String(user.name).trim().length > 0
       ? String(user.name).trim().charAt(0).toUpperCase()
@@ -91,17 +89,15 @@ const Navbar = ({
       }}
     >
       <Toolbar sx={{ display: "flex", gap: 2 }}>
-        {
-          <IconButton
-            edge="start"
-            aria-label="menu"
-            onClick={onToggleSidebar}
-            size="large"
-            sx={{ display: { lg: "none" } }}
-          >
-            <MenuIcon />
-          </IconButton>
-        }
+        <IconButton
+          edge="start"
+          aria-label="menu"
+          onClick={onToggleSidebar}
+          size="large"
+          sx={{ display: { lg: "none" } }}
+        >
+          <MenuIcon />
+        </IconButton>
 
         {/* Logo + middle nav */}
         <Box sx={{ display: "flex", alignItems: "center", gap: 2, flex: 1 }}>
@@ -110,23 +106,42 @@ const Navbar = ({
           </Typography>
 
           {/* middle nav — hidden on xs */}
-          <Box sx={{ display: { xs: "none", sm: "none", lg: "flex" }, gap: 1 }}>
-            {middleNavToShow.map((item) => (
-              <Button
-                key={item.key}
-                size="small"
-                onClick={() =>
-                  handleMiddleNav(item.path ?? `/admin/${item.key}`)
-                }
-                sx={{
-                  textTransform: "none",
-                  fontWeight: 600,
-                  color: "text.primary",
-                }}
-              >
-                {item.label}
-              </Button>
-            ))}
+          <Box
+            sx={{
+              display: { xs: "none", sm: "none", lg: "flex" },
+              gap: 2,
+              width: "100%",
+            }}
+          >
+            {middleNavToShow.map((item) => {
+              const itemPath = item.path ?? `/admin/${item.key}`;
+              // 3. Derive active state from current location
+              // Check if the current pathname starts with the item's path
+              const isActive = location.pathname.startsWith(itemPath);
+
+              return (
+                <Button
+                  key={item.key}
+                  size="small"
+                  onClick={() => handleMiddleNav(itemPath)}
+                  sx={
+                    isActive
+                      ? {
+                          color: "primary.main",
+                          textTransform: "none",
+                          fontWeight: 600,
+                        }
+                      : {
+                          textTransform: "none",
+                          fontWeight: 600,
+                          color: "text.primary",
+                        }
+                  }
+                >
+                  {item.label}
+                </Button>
+              );
+            })}
           </Box>
         </Box>
 
@@ -155,11 +170,7 @@ const Navbar = ({
             transformOrigin={{ horizontal: "right", vertical: "top" }}
             anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
           >
-            <MenuItem
-              onClick={() => {
-                toggleTheme();
-              }}
-            >
+            <MenuItem onClick={toggleTheme}>
               <ListItemIcon>
                 <LightModeIcon fontSize="small" />
               </ListItemIcon>

@@ -5,6 +5,7 @@ import Navbar from "./Navbar/Navbar";
 import SideBar from "./Sidebar/SideBar";
 import CartDrawer from "../CartDrawer/CartDrawer";
 import { useCart } from "../../context/CartContext";
+import { useAuth } from "../../context/AuthContext";
 
 const LayoutMain = ({ children }: { children: React.ReactNode }) => {
   const [sidebarOpen, setSidebarOpen] = React.useState(false);
@@ -14,6 +15,7 @@ const LayoutMain = ({ children }: { children: React.ReactNode }) => {
   const closeSidebar = () => setSidebarOpen(false);
   const toggleCart = () => setCartOpen((s) => !s);
   const closeCart = () => setCartOpen(false);
+  const { user } = useAuth();
   const { totals } = useCart();
 
   const innerSx = {
@@ -41,7 +43,11 @@ const LayoutMain = ({ children }: { children: React.ReactNode }) => {
         cartCount={totals.itemsCount}
       />
 
-      <SideBar open={sidebarOpen} onClose={closeSidebar} />
+      <SideBar
+        open={sidebarOpen}
+        onClose={closeSidebar}
+        initialActive={user?.allowedPages?.[0].key}
+      />
 
       <Box
         component="main"

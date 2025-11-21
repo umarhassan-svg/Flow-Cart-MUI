@@ -12,7 +12,6 @@ import {
   TablePagination,
   Chip,
   IconButton,
-  Tooltip,
   Typography,
   Stack,
   TextField,
@@ -84,7 +83,10 @@ const OrdersListPage = () => {
   const isStaff = useMemo(() => {
     // Check if the user has any staff-level permission for orders
     return (
-      can("orders:update") || can("orders:delete") || can("orders:fulfill")
+      can("orders:update") ||
+      can("orders:delete") ||
+      can("orders:fulfill") ||
+      can("orders:audit")
     );
   }, [can]);
 
@@ -378,21 +380,6 @@ const OrdersListPage = () => {
                           justifyContent="flex-end"
                           alignItems="center"
                         >
-                          {/* Quick Cancel Button for the Customer */}
-                          {can("orders:cancel") &&
-                            user?.id === row.customerId &&
-                            (row.status === "pending" ||
-                              row.status === "confirmed") && (
-                              <Tooltip title="Cancel order">
-                                <IconButton
-                                  size="small"
-                                  onClick={() => handleCancel(row)}
-                                >
-                                  <CancelIcon color="error" />
-                                </IconButton>
-                              </Tooltip>
-                            )}
-
                           <OrderActionsMenu
                             order={row}
                             onEdit={(o) => openEdit(o)}

@@ -118,7 +118,7 @@ const Login = () => {
         <Box
           sx={{
             width: { xs: "100%", sm: "52%" },
-            minHeight: { xs: "auto", sm: "100%" },
+            minHeight: { xs: "auto", sm: "100%", md: "100%" },
             p: { xs: 2, sm: 4 },
             boxSizing: "border-box",
             display: "flex",
@@ -127,9 +127,7 @@ const Login = () => {
             bgcolor: "background.paper",
           }}
         >
-          <Box sx={{ width: "100%", maxWidth: 480 }}>
-            <LoginForm />
-          </Box>
+          <LoginForm />
         </Box>
       </Stack>
     </Box>

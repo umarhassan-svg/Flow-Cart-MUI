@@ -1,7 +1,6 @@
 import LayoutMain from "../components/layout/layoutMain";
 import { Typography } from "@mui/material";
-const ManagerDashboard = () => {
-  console.log("ManagerDashboard");
+const Home = () => {
   return (
     <>
       <LayoutMain>
@@ -24,4 +23,4 @@ const ManagerDashboard = () => {
   );
 };
 
-export default ManagerDashboard;
+export default Home;

@@ -123,6 +123,8 @@ export const darkTheme = createTheme({
   typography: {
     fontFamily: `"Inter", "Poppins", sans-serif`,
     h1: { fontWeight: 800, fontSize: "2.4rem", color: "#E6FCFF" },
+    h2: { fontWeight: 700, fontSize: "1.8rem", color: "#E6FCFF" },
+    h3: { fontWeight: 600, fontSize: "1.3rem", color: "#E6FCFF" },
     body1: { fontSize: "1rem", color: "#C6F1F1" },
     button: { textTransform: "none", fontWeight: 700 },
   },
@@ -132,7 +134,7 @@ export const darkTheme = createTheme({
   components: {
     MuiButton: {
       styleOverrides: {
-        root: { borderRadius: 12 },
+        root: { borderRadius: 12 ,paddingInline: "1rem"},
         containedPrimary: {
           backgroundColor: "#39EDE6",
           color: "#002022",
