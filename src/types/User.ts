@@ -18,6 +18,7 @@ export interface User {
   effectivePermissions?: string[];
   // server computed allowed pages (union of role pages + user pages)
   allowedPages?: allowedPages[];
+  profilePicturePath?: string;
 
 }
 

@@ -17,6 +17,12 @@ import CheckOutPage from "../pages/CheckOutPage";
 import BulkOrderPage from "../pages/BulkOrderPage";
 import { NavProvider } from "../context/NavContext";
 import OrdersListPage from "../pages/OrdersListPage";
+import ProfilePage from "../pages/ProfilePage";
+import EmployeesPage from "../pages/EmployeesPage";
+import TestErrorBoundry from "../pages/TestErrorBoundry";
+import ErrorBoundary from "../pages/ErrorBoundary/ErrorBoundary";
+import { SessionProvider } from "../context/SessionContext";
+import { CartProvider } from "../context/CartContext";
 
 /**
  * Routes:
@@ -39,11 +45,36 @@ const router = createBrowserRouter([
   // All private routes: require authentication
   {
     element: (
-      <NavProvider>
-        <PrivateRoute />
-      </NavProvider>
-    ), // auth-only wrapper
+      <ErrorBoundary>
+        <SessionProvider>
+          <CartProvider>
+            <NavProvider>
+              <PrivateRoute />
+            </NavProvider>
+          </CartProvider>
+        </SessionProvider>
+      </ErrorBoundary>
+    ),
+    // auth-only wrapper
     children: [
+      // Profile page
+      {
+        path: "/profile",
+        element: (
+          <PrivateRoute requiredPermissions={["profile:read"]}>
+            <ProfilePage />
+          </PrivateRoute>
+        ),
+      },
+      //Employees
+      {
+        path: "/employees",
+        element: (
+          <PrivateRoute requiredPermissions={["employees:read"]}>
+            <EmployeesPage />
+          </PrivateRoute>
+        ),
+      },
       // Home page – maybe all logged-in users can access
       {
         path: "/home",
@@ -131,7 +162,23 @@ const router = createBrowserRouter([
             ),
           },
           {
+            path: ":id",
+            element: (
+              <PrivateRoute requiredPermissions={["users:read"]}>
+                <UsersManagement />
+              </PrivateRoute>
+            ),
+          },
+          {
             path: ":id/edit",
+            element: (
+              <PrivateRoute requiredPermissions={["users:update"]}>
+                <UsersManagement />
+              </PrivateRoute>
+            ),
+          },
+          {
+            path: ":id/employee-card/download",
             element: (
               <PrivateRoute requiredPermissions={["users:update"]}>
                 <UsersManagement />
@@ -179,8 +226,15 @@ const router = createBrowserRouter([
           </PrivateRoute>
         ),
       },
+
+      {
+        path: "/test-error",
+        element: <TestErrorBoundry />,
+      },
+
       // Unauthorized
       { path: "/unauthorized", element: <Unauthorized /> },
+      {},
     ],
   },
 

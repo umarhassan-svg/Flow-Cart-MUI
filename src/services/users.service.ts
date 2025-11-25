@@ -73,7 +73,6 @@ const usersService = {
 
   async getUser(id: string): Promise<User> {
     try {
-      // Preferred: try single-user endpoint (add to backend if missing)
       const resp = await api.get<{ user?: User; id?: string }>(`/api/users/${id}`);
       // If backend returns { user: ... } or the user directly, handle both.
       // Many simple APIs return the user object directly in resp.data
@@ -84,6 +83,8 @@ const usersService = {
         if (data.id) return data as User;
       }
       // fall back to treating resp.data as the user
+      console.log("resp.data", resp.data);
+
       return data as User;
     } catch (err: unknown) {
       // If single-user route doesn't exist, fall back to search in list (best-effort)
@@ -111,6 +112,7 @@ const usersService = {
   async updateUser(id: string, payload: UpdateUserPayload): Promise<User> {
     try {
       const resp = await api.put<User>(`/api/users/${id}`, payload);
+      console.log(resp.data);
       return resp.data;
     } catch (err: unknown) {
       throw new Error(extractErrorMessage(err, "Failed to update user"));
@@ -160,7 +162,57 @@ const usersService = {
     } catch (err: unknown) {
       throw new Error(extractErrorMessage(err, "Failed to delete role"));
     }
+  },
+  async uploadEmployeeCard(userId: string, file: File): Promise<{ url: string }> {
+  const fd = new FormData();
+  fd.append("file", file);
+
+  try {
+    const res = await api.post(`/api/users/${encodeURIComponent(userId)}/employee-card`, fd, {
+      headers: {
+        // Axios will set proper multipart boundary if Content-Type is omitted,
+        // but setting it here is fine too.
+        "Content-Type": "multipart/form-data",
+      },
+      // if your backend uses cookie auth:
+      withCredentials: true,
+    });
+
+    console.log("res.data", res.data);
+
+    // backend returns { message: "Employee card uploaded", url: "/api/users/:id/employee-card/download" }
+    return res.data as { url: string };
+  } catch (err: unknown) {
+    throw new Error(extractErrorMessage(err, "Failed to upload employee card"));
   }
+  },
+  // returns the server preview/download URL or null if not present
+async  getEmployeeCardUrl(userId: string): Promise<string | null> {
+  try {
+    const resp = await api.get<{ url?: string }>(`/api/users/${encodeURIComponent(userId)}/employee-card/download`, {
+      withCredentials: true,
+    });
+
+    // If backend returns a valid HTTP(s) or relative URL, use it directly
+    const url = resp.data?.url ?? null;
+    if (!url) return null;
+
+    // If backend accidentally returned a Windows path (e.g. startsWith C:\), fallback to endpoint
+    const looksLikeFileSystemPath = /^[A-Za-z]:\\/.test(url) || url.startsWith("file://");
+    if (looksLikeFileSystemPath) {
+      // use the protected API endpoint directly (browser will GET this URL)
+      return `/api/users/${encodeURIComponent(userId)}/employee-card/download`;
+    }
+
+    // If the returned url is a relative path (starts with '/'), return as-is
+    // If it's absolute (http/https) also return as-is
+    return url;
+  } catch (err: unknown) {
+    console.warn("Failed to fetch employeeCardUrl:", err);
+    return null;
+  }
+}
+
 };
 
 export default usersService;
