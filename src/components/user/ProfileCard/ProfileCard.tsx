@@ -34,7 +34,7 @@ const ProfileCard = ({
         >
           {title}
         </Typography>
-        {can("profile:edit") && onEdit && (
+        {can("profile:update") && onEdit && (
           <Button
             variant="contained"
             startIcon={<Edit sx={{ fontSize: 18 }} />}

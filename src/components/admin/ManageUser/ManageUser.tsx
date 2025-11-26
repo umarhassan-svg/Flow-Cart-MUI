@@ -26,7 +26,7 @@ import type {
   Role,
   CreateUserPayload,
   UpdateUserPayload,
-} from "../../../services/users.service";
+} from "../../../types/UsersService";
 import type { User } from "../../../types/User";
 import OpenPDFDialogBox from "../OpenPDFDialogBox/OpenPDFDialogBox";
 import PDFUploadField from "../TextFieldPDF Upload/PDFUploadField";

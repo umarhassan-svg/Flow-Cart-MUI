@@ -1,14 +1,5 @@
-import {
-  Button,
-  Container,
-  Stack,
-  Typography,
-  Tabs,
-  Tab,
-  Box,
-} from "@mui/material";
+import { Container, Stack, Typography, Tabs, Tab, Box } from "@mui/material";
 import LayoutMain from "../components/layout/layoutMain";
-import EmailIcon from "@mui/icons-material/Email";
 import EmployeesOverView from "../components/user/EmployeesOverView/EmployeesOverView";
 import { useState } from "react";
 
@@ -36,9 +27,9 @@ const ProfilePage = () => {
             Employees
           </Typography>
 
-          <Button variant="contained" color="primary" startIcon={<EmailIcon />}>
+          {/* <Button variant="contained" color="primary" startIcon={<EmailIcon />}>
             Add New Employee
-          </Button>
+          </Button> */}
         </Stack>
 
         {/* Small Nav Below Header */}

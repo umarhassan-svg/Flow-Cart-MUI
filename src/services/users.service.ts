@@ -1,218 +1,116 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 // src/services/users.service.ts
 import api from "./api/axios";
 import type { User } from "../types/User";
+import type { PaginatedResponse, UpdateUserPayload, CreateUserPayload } from "../types/UsersService";
+import type { Role } from "../types/Roles";
+import { 
+  handleApiCall, 
+  handleGetUserWithFallback, 
+  handleCardUrlResponse 
+} from "../utils/ServicesHelpers/UsersHelpers"; // Import the helper
 
-/**
- * Generic paginated response from backend
- */
-export interface PaginatedResponse<T> {
-  page: number;
-  limit: number;
-  total: number;
-  data: T[];
-}
-
-/**
- * Payloads
- */
-export interface CreateUserPayload {
-  name: string;
-  email: string;
-  password?: string; // server-side default exists
-  roles?: string[];
-  permissions?: string[]; // optional direct user permissions
-}
-
-export interface UpdateUserPayload {
-  name?: string;
-  email?: string;
-  roles?: string[];
-  permissions?: string[];
-}
-
-/**
- * Role type
- */
-export interface Role {
-  id: string;
-  name: string;
-  pages: string[];
-  permissions?: string[]; // backend supports role permissions
-}
-
-/**
- * Helper to extract server error message (if present)
- */
-function extractErrorMessage(err: unknown, fallback = "Request failed") {
-  const anyErr = err as any;
-  return (
-    anyErr?.response?.data?.error ||
-    anyErr?.message ||
-    fallback
-  );
-}
-
-/**
- * Users API
- */
 const usersService = {
-  async getUsers(opts?: { page?: number; limit?: number; search?: string }): Promise<PaginatedResponse<User>> {
-    try {
-      const params = {
-        page: opts?.page ?? 1,
-        limit: opts?.limit ?? 10,
-        search: opts?.search ?? ""
-      };
-      const resp = await api.get<PaginatedResponse<User>>("/api/users", { params });
-      return resp.data;
-    } catch (err: unknown) {
-      throw new Error(extractErrorMessage(err, "Failed to fetch users"));
-    }
+  getUsers(opts?: { page?: number; limit?: number; search?: string }): Promise<PaginatedResponse<User>> {
+    const params = {
+      page: opts?.page ?? 1,
+      limit: opts?.limit ?? 10,
+      search: opts?.search ?? ""
+    };
+    // Simply pass the function definition to the helper
+    return handleApiCall<PaginatedResponse<User>>(
+      () => api.get("/api/users", { params }), 
+      "Failed to fetch users"
+    );
   },
 
-  async getUser(id: string): Promise<User> {
-    try {
-      const resp = await api.get<{ user?: User; id?: string }>(`/api/users/${id}`);
-      // If backend returns { user: ... } or the user directly, handle both.
-      // Many simple APIs return the user object directly in resp.data
-      const data = resp.data;
-      if (data && typeof data === "object") {
-        if (data.user) return data.user as User;
-        // If server returned plain user object:
-        if (data.id) return data as User;
-      }
-      // fall back to treating resp.data as the user
-      console.log("resp.data", resp.data);
-
-      return data as User;
-    } catch (err: unknown) {
-      // If single-user route doesn't exist, fall back to search in list (best-effort)
-      try {
-        const list = await this.getUsers({ page: 1, limit: 1000, search: "" });
-        const found = list.data.find((u) => u.id === id);
-        if (found) return found;
-      } catch (e) {
-        // ignore fallback errors
-        console.error(e);
-      }
-      throw new Error(extractErrorMessage(err, "Failed to fetch user"));
-    }
+  getUser(id: string): Promise<User> {
+    // Uses the specialized helper to handle the specific fallback logic
+    return handleGetUserWithFallback(
+      () => api.get(`/api/users/${id}`),
+      // We define the fallback call here (fetching list of 1000)
+      () => api.get("/api/users", { params: { page: 1, limit: 1000, search: "" } }),
+      id
+    );
   },
 
-  async createUser(payload: CreateUserPayload): Promise<User> {
-    try {
-      const resp = await api.post<User>("/api/users", payload);
-      return resp.data;
-    } catch (err: unknown) {
-      throw new Error(extractErrorMessage(err, "Failed to create user"));
-    }
+  createUser(payload: CreateUserPayload): Promise<User> {
+    return handleApiCall<User>(
+      () => api.post("/api/users", payload), 
+      "Failed to create user"
+    );
   },
 
-  async updateUser(id: string, payload: UpdateUserPayload): Promise<User> {
-    try {
-      const resp = await api.put<User>(`/api/users/${id}`, payload);
-      console.log(resp.data);
-      return resp.data;
-    } catch (err: unknown) {
-      throw new Error(extractErrorMessage(err, "Failed to update user"));
-    }
+  updateUser(id: string, payload: UpdateUserPayload): Promise<User> {
+    return handleApiCall<User>(
+      () => api.put(`/api/users/${id}`, payload), 
+      "Failed to update user"
+    );
   },
 
-  async deleteUser(id: string): Promise<User> {
-    try {
-      const resp = await api.delete<{ deleted: User }>(`/api/users/${id}`);
-      return resp.data.deleted;
-    } catch (err: unknown) {
-      throw new Error(extractErrorMessage(err, "Failed to delete user"));
-    }
+  deleteUser(id: string): Promise<User> {
+    // Note: We use a small inline transform here because the helper expects the return type T
+    // but the API returns { deleted: User }. We extract .deleted inside the callback.
+    return handleApiCall<User>(
+      async () => {
+        const res = await api.delete<{ deleted: User }>(`/api/users/${id}`);
+        return { ...res, data: res.data.deleted }; // Adapt response to match generic
+      }, 
+      "Failed to delete user"
+    );
   },
 
-  async getRoles(): Promise<Role[]> {
-    try {
-      const resp = await api.get<Role[]>("/api/roles");
-      return resp.data;
-    } catch (err: unknown) {
-      throw new Error(extractErrorMessage(err, "Failed to fetch roles"));
-    }
+  getRoles(): Promise<Role[]> {
+    return handleApiCall<Role[]>(
+      () => api.get("/api/roles"), 
+      "Failed to fetch roles"
+    );
   },
 
-  async createRole(payload: { name: string; pages?: string[]; permissions?: string[] }): Promise<Role> {
-    try {
-      const resp = await api.post<Role>("/api/roles", payload);
-      return resp.data;
-    } catch (err: unknown) {
-      throw new Error(extractErrorMessage(err, "Failed to create role"));
-    }
+  createRole(payload: { name: string; pages?: string[]; permissions?: string[] }): Promise<Role> {
+    return handleApiCall<Role>(
+      () => api.post("/api/roles", payload), 
+      "Failed to create role"
+    );
   },
 
-  async updateRole(id: string, payload: { name?: string; pages?: string[]; permissions?: string[] }): Promise<Role> {
-    try {
-      const resp = await api.put<Role>(`/api/roles/${id}`, payload);
-      return resp.data;
-    } catch (err: unknown) {
-      throw new Error(extractErrorMessage(err, "Failed to update role"));
-    }
+  updateRole(id: string, payload: { name?: string; pages?: string[]; permissions?: string[] }): Promise<Role> {
+    return handleApiCall<Role>(
+      () => api.put(`/api/roles/${id}`, payload), 
+      "Failed to update role"
+    );
   },
 
-  async deleteRole(id: string): Promise<Role> {
-    try {
-      const resp = await api.delete<{ deleted: Role }>(`/api/roles/${id}`);
-      return resp.data.deleted;
-    } catch (err: unknown) {
-      throw new Error(extractErrorMessage(err, "Failed to delete role"));
-    }
+  deleteRole(id: string): Promise<Role> {
+    return handleApiCall<Role>(
+      async () => {
+        const res = await api.delete<{ deleted: Role }>(`/api/roles/${id}`);
+        return { ...res, data: res.data.deleted };
+      }, 
+      "Failed to delete role"
+    );
   },
-  async uploadEmployeeCard(userId: string, file: File): Promise<{ url: string }> {
-  const fd = new FormData();
-  fd.append("file", file);
 
-  try {
-    const res = await api.post(`/api/users/${encodeURIComponent(userId)}/employee-card`, fd, {
-      headers: {
-        // Axios will set proper multipart boundary if Content-Type is omitted,
-        // but setting it here is fine too.
-        "Content-Type": "multipart/form-data",
-      },
-      // if your backend uses cookie auth:
-      withCredentials: true,
-    });
+  uploadEmployeeCard(userId: string, file: File): Promise<{ url: string }> {
+    const fd = new FormData();
+    fd.append("file", file);
 
-    console.log("res.data", res.data);
+    return handleApiCall<{ url: string }>(
+      () => api.post(`/api/users/${encodeURIComponent(userId)}/employee-card`, fd, {
+        headers: { "Content-Type": "multipart/form-data" },
+        withCredentials: true,
+      }),
+      "Failed to upload employee card"
+    );
+  },
 
-    // backend returns { message: "Employee card uploaded", url: "/api/users/:id/employee-card/download" }
-    return res.data as { url: string };
-  } catch (err: unknown) {
-    throw new Error(extractErrorMessage(err, "Failed to upload employee card"));
+  getEmployeeCardUrl(userId: string): Promise<string | null> {
+    return handleCardUrlResponse(
+      () => api.get(`/api/users/${encodeURIComponent(userId)}/employee-card/download`, {
+        withCredentials: true,
+      }),
+      userId
+    );
   }
-  },
-  // returns the server preview/download URL or null if not present
-async  getEmployeeCardUrl(userId: string): Promise<string | null> {
-  try {
-    const resp = await api.get<{ url?: string }>(`/api/users/${encodeURIComponent(userId)}/employee-card/download`, {
-      withCredentials: true,
-    });
-
-    // If backend returns a valid HTTP(s) or relative URL, use it directly
-    const url = resp.data?.url ?? null;
-    if (!url) return null;
-
-    // If backend accidentally returned a Windows path (e.g. startsWith C:\), fallback to endpoint
-    const looksLikeFileSystemPath = /^[A-Za-z]:\\/.test(url) || url.startsWith("file://");
-    if (looksLikeFileSystemPath) {
-      // use the protected API endpoint directly (browser will GET this URL)
-      return `/api/users/${encodeURIComponent(userId)}/employee-card/download`;
-    }
-
-    // If the returned url is a relative path (starts with '/'), return as-is
-    // If it's absolute (http/https) also return as-is
-    return url;
-  } catch (err: unknown) {
-    console.warn("Failed to fetch employeeCardUrl:", err);
-    return null;
-  }
-}
-
 };
 
 export default usersService;

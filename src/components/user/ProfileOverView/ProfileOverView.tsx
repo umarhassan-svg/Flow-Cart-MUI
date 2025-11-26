@@ -17,7 +17,7 @@ import { useState } from "react";
 import OpenPDFDialogBox from "../../admin/OpenPDFDialogBox/OpenPDFDialogBox";
 
 const ProfileOverView = () => {
-  const { user } = useAuth();
+  const { can, user } = useAuth();
 
   // Mock data parsing to match the "First Name / Last Name" split in image
   const names = (user?.name || "Natashia Khaleira").split(" ");
@@ -122,15 +122,17 @@ const ProfileOverView = () => {
                 Leeds, United Kingdom
               </Typography>
             </Box>
-            <Box sx={{ mr: "auto" }}>
-              <Button
-                size="small"
-                onClick={handleEmployeeCard(user?.id ?? "")}
-                disabled={!user?.id || previewLoading}
-              >
-                {previewLoading ? "Loading..." : "View Employee Card"}
-              </Button>
-            </Box>
+            {can("employees:read") && (
+              <Box sx={{ mr: "auto" }}>
+                <Button
+                  size="small"
+                  onClick={handleEmployeeCard(user?.id ?? "")}
+                  disabled={!user?.id || previewLoading}
+                >
+                  {previewLoading ? "Loading..." : "View Employee Card"}
+                </Button>
+              </Box>
+            )}
           </Paper>
 
           {/* ==== CARD 2: PERSONAL INFORMATION ==== */}
