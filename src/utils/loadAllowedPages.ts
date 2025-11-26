@@ -1,7 +1,7 @@
 // src/utils/loadNavItems.ts
 import type { ReactNode } from "react";
-import authService from "../services/auth.service";
 import rolesService from "../services/roles.service";
+import { getCurrentUser } from "./ServicesHelpers/AuthHelpers";
 
 export type NavItem = {
   key: string;
@@ -42,7 +42,7 @@ function toPascalCase(s: string): string {
  * Returns [] when no user found.
  */
 export async function loadNavItemsForCurrentUser(): Promise<NavItem[]> {
-  const user = authService.getCurrentUser();
+  const user = getCurrentUser();
   if (!user || !Array.isArray(user.roles) || user.roles.length === 0) {
     return [];
   }

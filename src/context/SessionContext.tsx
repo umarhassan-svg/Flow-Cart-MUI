@@ -8,7 +8,7 @@ import React, {
 } from "react";
 import { useAuth } from "./AuthContext";
 
-const SESSION_TIMEOUT = 1 * 60 * 1000; // 30 minutes in milliseconds
+const SESSION_TIMEOUT = 30 * 60 * 1000; // 30 minutes in milliseconds
 
 const SessionContext = createContext({});
 

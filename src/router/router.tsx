@@ -23,7 +23,7 @@ import TestErrorBoundry from "../pages/TestErrorBoundry";
 import ErrorBoundary from "../pages/ErrorBoundary/ErrorBoundary";
 import { SessionProvider } from "../context/SessionContext";
 import { CartProvider } from "../context/CartContext";
-
+import UsersTable from "../pages/TestCustomTable";
 /**
  * Routes:
  * - /admin/users           -> list (requires users:read)
@@ -230,6 +230,10 @@ const router = createBrowserRouter([
       {
         path: "/test-error",
         element: <TestErrorBoundry />,
+      },
+      {
+        path: "/test-custom-table",
+        element: <UsersTable />,
       },
 
       // Unauthorized

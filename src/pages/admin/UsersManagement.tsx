@@ -27,7 +27,7 @@ import UsersTable from "../../components/admin/UsersTable/UsersTable";
 
 import usersService from "../../services/users.service";
 import type { User } from "../../types/User";
-import type { Role } from "../../services/users.service";
+import type { Role } from "../../types/Roles";
 import LayoutMain from "../../components/layout/layoutMain";
 import { useAuth } from "../../context/AuthContext";
 
