@@ -23,7 +23,7 @@ import TestErrorBoundry from "../pages/TestErrorBoundry";
 import ErrorBoundary from "../pages/ErrorBoundary/ErrorBoundary";
 import { SessionProvider } from "../context/SessionContext";
 import { CartProvider } from "../context/CartContext";
-import UsersTable from "../pages/TestCustomTable";
+import UsersTable from "../pages/UserManagement";
 /**
  * Routes:
  * - /admin/users           -> list (requires users:read)

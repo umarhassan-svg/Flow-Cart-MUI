@@ -2,6 +2,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useMemo, useState } from "react";
 import type { Column } from "../../../types/TableColumn";
+import { exportTableCSV } from "../../../utils/generateCSV";
+import {
+  StatusBadge,
+  ChipOverflowDialog,
+  Chip,
+  SimpleMenu,
+  formatDate,
+} from "../../../utils/CustomTableHelper";
 
 /* ---------- new pagination + loading props ---------- */
 export interface GenericTableProps<T> {
@@ -15,172 +23,13 @@ export interface GenericTableProps<T> {
   onRowClick?: (row: T, idx: number) => void;
 
   /* pagination / loading */
-  pagination?: boolean; // enable pagination UI (client-side by default)
+  pagination?: boolean;
   initialPageSize?: number;
-  pageSizeOptions?: number[]; // e.g. [10,25,50]
-  serverSide?: boolean; // true if you load pages from server
-  total?: number; // required for server-side to show total count (optional otherwise)
-  onPageChange?: (page: number, pageSize: number) => void; // used in serverSide mode (but also called on page changes in client-side)
-  loading?: boolean; // toggle loading overlay
-}
-
-/* ---------- helper components (internal) ---------- */
-
-function formatDate(v: any) {
-  if (!v && v !== 0) return "—";
-  const d = v instanceof Date ? v : new Date(String(v));
-  if (isNaN(d.getTime())) return String(v);
-  // e.g. Jan 02, 2025
-  return d.toLocaleString(undefined, {
-    year: "numeric",
-    month: "short",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
-
-function StatusBadge({ value }: { value: string | number | undefined }) {
-  const text = value ?? "—";
-  const v = String(value ?? "").toLowerCase();
-  const map: Record<string, string> = {
-    active: "status-active",
-    enabled: "status-active",
-    pending: "status-pending",
-    inactive: "status-inactive",
-    disabled: "status-inactive",
-    error: "status-danger",
-    failed: "status-danger",
-    success: "status-success",
-  };
-  const cls = map[v] ?? "status-default";
-  return <span className={`status-badge ${cls}`}>{text}</span>;
-}
-
-function IconDots() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden>
-      <circle cx="5" cy="12" r="1.75" />
-      <circle cx="12" cy="12" r="1.75" />
-      <circle cx="19" cy="12" r="1.75" />
-    </svg>
-  );
-}
-
-function SimpleMenu<T>({
-  options,
-  row,
-}: {
-  options: Column<T>["options"];
-  row: T;
-}) {
-  const [open, setOpen] = useState(false);
-  return (
-    <div className="menu-root" onMouseLeave={() => setOpen(false)}>
-      <button
-        className="menu-trigger"
-        aria-haspopup="true"
-        aria-expanded={open}
-        onClick={(e) => {
-          e.stopPropagation();
-          setOpen((s) => !s);
-        }}
-        title="Actions"
-      >
-        <IconDots />
-      </button>
-      {open && (
-        <div
-          className="menu-popover"
-          role="menu"
-          onClick={(e) => e.stopPropagation()}
-        >
-          {options?.map((opt, i) => (
-            <button
-              key={opt.key ?? `${i}`}
-              role="menuitem"
-              className={`menu-item menu-item-${opt.variant ?? "default"}`}
-              onClick={() => {
-                if (opt.onClick) opt.onClick(row);
-                setOpen(false);
-              }}
-            >
-              {opt.label}
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
-function Chip({ text, onClick }: { text: string; onClick?: () => void }) {
-  return (
-    <button
-      className="chip"
-      onClick={(e) => {
-        e.stopPropagation();
-        if (onClick) onClick();
-      }}
-    >
-      {text}
-    </button>
-  );
-}
-
-function ChipOverflowDialog<T>({
-  open,
-  onClose,
-  chips,
-}: {
-  open: boolean;
-  onClose: () => void;
-  chips: string[];
-}) {
-  useEffect(() => {
-    if (!open) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [open, onClose]);
-
-  if (!open) return null;
-  return (
-    <div className="chip-dialog-backdrop" onClick={onClose}>
-      <div
-        className="chip-dialog"
-        role="dialog"
-        aria-modal
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="chip-dialog-header">
-          <strong>Items</strong>
-          <button
-            className="chip-dialog-close"
-            onClick={onClose}
-            aria-label="Close"
-          >
-            ×
-          </button>
-        </div>
-        <div className="chip-dialog-body">
-          {chips.length === 0 ? (
-            <div className="chip-empty">No items</div>
-          ) : (
-            <div className="chip-grid">
-              {chips.map((c, i) => (
-                <div key={i} className="chip-grid-item">
-                  {c}
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
+  pageSizeOptions?: number[];
+  serverSide?: boolean;
+  total?: number;
+  onPageChange?: (page: number, pageSize: number) => void;
+  loading?: boolean;
 }
 
 /* ===================================================== */
@@ -193,7 +42,6 @@ export default function GenericTable<T>({
   dense = false,
   className = "",
   onRowClick,
-  /* pagination props with defaults */
   pagination = false,
   initialPageSize = 10,
   pageSizeOptions = [5, 10, 25, 50],
@@ -203,18 +51,14 @@ export default function GenericTable<T>({
   loading = false,
 }: GenericTableProps<T>) {
   const [selected, setSelected] = useState<Set<string | number>>(new Set());
-
-  // pagination state (internal). If serverSide, user should handle fetching when onPageChange is called.
   const [page, setPage] = useState<number>(1);
   const [pageSize, setPageSize] = useState<number>(initialPageSize);
-
-  // chip dialog state
   const [chipDialog, setChipDialog] = useState<{
     open: boolean;
     items: string[];
   }>({ open: false, items: [] });
+  const [exportMenuOpen, setExportMenuOpen] = useState(false);
 
-  // ensure page valid when data/total/pageSize changes
   useEffect(() => {
     const effectiveTotal = serverSide
       ? typeof total === "number"
@@ -222,17 +66,18 @@ export default function GenericTable<T>({
         : data.length
       : data.length;
     const totalPages = Math.max(1, Math.ceil(effectiveTotal / pageSize));
-    if (page > totalPages) setPage(totalPages);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data, total, pageSize, serverSide]);
 
-  // expose page changes to parent if requested (serverSide typical)
+    const set_page = (p: number) => {
+      setPage(p);
+    };
+
+    if (page > totalPages) set_page(totalPages);
+  }, [data, total, pageSize, serverSide, page]);
+
   useEffect(() => {
     if (onPageChange) {
       onPageChange(page, pageSize);
     }
-    // only call when page or pageSize changes
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, pageSize]);
 
   const keyFor = (row: T, idx: number): string | number => {
@@ -269,7 +114,6 @@ export default function GenericTable<T>({
 
   const hasSelection = selected.size > 0;
 
-  /* ---------- compute paging ---------- */
   const effectiveTotal = serverSide
     ? typeof total === "number"
       ? total
@@ -277,29 +121,24 @@ export default function GenericTable<T>({
     : data.length;
   const totalPages = Math.max(1, Math.ceil(effectiveTotal / pageSize));
 
-  // client-side paged rows
   const pagedData = useMemo(() => {
     if (!pagination) return data;
-    if (serverSide) return data; // server provides the current page slice already
+    if (serverSide) return data;
     const start = (page - 1) * pageSize;
     return data.slice(start, start + pageSize);
   }, [data, page, pageSize, pagination, serverSide]);
 
-  /* ---------- pagination helpers for UI ---------- */
   const goTo = (p: number) => {
     const clamped = Math.max(1, Math.min(totalPages, p));
     setPage(clamped);
   };
 
   const handlePageSizeChange = (nextSize: number) => {
-    // when page size changes, reset to page 1 for predictable behavior
     setPageSize(nextSize);
     setPage(1);
   };
 
-  /* ---------- render cell using built-in types if provided ---------- */
   const renderCellContent = (col: Column<T>, row: T, rIdx: number) => {
-    // priority: explicit render -> built-in type handlers -> accessor -> property
     if (col.render) return col.render(row, rIdx);
 
     const value = col.accessor
@@ -326,7 +165,6 @@ export default function GenericTable<T>({
         : [];
       if (arr.length === 0) return <span className="muted">—</span>;
       if (arr.length === 1) return <Chip text={arr[0]} />;
-      // multiple -> show first and overflow chip
       const restCount = arr.length - 1;
       return (
         <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
@@ -346,26 +184,110 @@ export default function GenericTable<T>({
     }
 
     if (col.type === "buttons") {
-      // if options provided, use them; else try to use row.actions (convention)
       const opts =
         col.options ?? ((row as any).actions as Column<T>["options"]) ?? [];
       if (!opts || opts.length === 0) return <span className="muted">—</span>;
       return <SimpleMenu options={opts} row={row} />;
     }
 
-    // default: simple text
     if (value === null || value === undefined || value === "")
       return <span className="muted">—</span>;
     return <span>{String(value)}</span>;
   };
 
-  /* ---------- render ---------- */
+  const handleExport = (mode: "all" | "page" | "selected") => {
+    let rowsToExport: T[] = [];
+    if (mode === "selected") {
+      if (selected.size === 0) return;
+      const selectedSet = new Set(selected);
+      rowsToExport = data.filter((row, idx) =>
+        selectedSet.has(keyFor(row, idx))
+      );
+    } else if (mode === "page") {
+      rowsToExport = pagedData;
+    } else {
+      rowsToExport = data;
+    }
+
+    const filename = `table-export-${new Date()
+      .toISOString()
+      .slice(0, 19)
+      .replace(/[:T]/g, "-")}.csv`;
+
+    exportTableCSV(columns, rowsToExport, filename);
+    setExportMenuOpen(false);
+  };
+
   return (
     <div
       className={`generic-table-wrapper ${dense ? "dense" : ""} ${className}`}
     >
+      {/* Top header bar with export button - OUTSIDE the table */}
+      <div className="table-header">
+        <div className="export-wrapper">
+          <button
+            className="export-btn"
+            onClick={() => setExportMenuOpen((s) => !s)}
+            disabled={loading || data.length === 0}
+            aria-haspopup="true"
+            aria-expanded={exportMenuOpen}
+            title="Export table data to CSV"
+          >
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="7 10 12 15 17 10" />
+              <line x1="12" y1="15" x2="12" y2="3" />
+            </svg>
+            Export CSV
+          </button>
+
+          {exportMenuOpen && (
+            <div
+              className="export-menu"
+              role="menu"
+              onMouseLeave={() => setExportMenuOpen(false)}
+            >
+              <button
+                className="export-menu-item"
+                onClick={() => handleExport("all")}
+                role="menuitem"
+              >
+                📄 Export all rows
+              </button>
+              <button
+                className="export-menu-item"
+                onClick={() => handleExport("page")}
+                role="menuitem"
+              >
+                📋 Export current page
+              </button>
+              <button
+                className="export-menu-item"
+                onClick={() => handleExport("selected")}
+                disabled={!hasSelection}
+                role="menuitem"
+                title={
+                  !hasSelection ? "Select rows to export only selected" : ""
+                }
+              >
+                ✓ Export selected rows
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Table scroll container */}
       <div className="table-scroll" style={{ position: "relative" }}>
-        {/* Loading overlay */}
         {loading && (
           <div className="table-loading-overlay" aria-hidden>
             <div className="table-spinner" />
@@ -423,7 +345,7 @@ export default function GenericTable<T>({
                   tabIndex={0}
                 >
                   {selectable && (
-                    <td className="col-select">
+                    <td className="col-select" data-label="">
                       <input
                         type="checkbox"
                         aria-label={`Select row ${rIdx + 1}`}
@@ -465,19 +387,20 @@ export default function GenericTable<T>({
 
       {hasSelection && (
         <div className="table-toolbar">
-          <span>{selected.size} selected</span>
+          <span>
+            {selected.size} row{selected.size !== 1 ? "s" : ""} selected
+          </span>
           <button
             onClick={() => {
               setSelected(new Set());
               if (onSelectionChange) onSelectionChange([]);
             }}
           >
-            Clear
+            Clear selection
           </button>
         </div>
       )}
 
-      {/* ---------- pagination UI ---------- */}
       {pagination && (
         <div
           className="table-pagination"
@@ -485,9 +408,8 @@ export default function GenericTable<T>({
           aria-label="Table pagination"
         >
           <div className="pagination-info">
-            {/* Showing range: */}
             <span>
-              Showing {effectiveTotal === 0 ? 0 : (page - 1) * pageSize + 1} –{" "}
+              Showing {effectiveTotal === 0 ? 0 : (page - 1) * pageSize + 1}–
               {Math.min(
                 effectiveTotal,
                 (page - 1) * pageSize + pagedData.length
@@ -514,7 +436,6 @@ export default function GenericTable<T>({
               ‹
             </button>
 
-            {/* page numbers: show current +/- 2 with first/last when necessary */}
             {(() => {
               const pages: Array<number | "dots"> = [];
               const start = Math.max(1, page - 2);
@@ -567,7 +488,6 @@ export default function GenericTable<T>({
               »
             </button>
 
-            {/* page size */}
             <select
               className="pg-select"
               value={pageSize}

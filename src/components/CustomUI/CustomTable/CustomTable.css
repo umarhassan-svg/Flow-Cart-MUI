@@ -1,72 +1,211 @@
-
 /* ========================================================================*/
+/* Base wrapper - Modern and Professional */
 .generic-table-wrapper {
-    font-family: Inter, system-ui, Arial, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', system-ui, Arial, sans-serif;
+    position: relative;
+    color: #1e293b;
+    --card-bg: #ffffff;
+    --muted: #64748b;
+    --border: #e2e8f0;
+    --primary: #3b82f6;
+    --primary-hover: #2563eb;
+    --surface: #f8fafc;
+    margin: 0 auto;
 }
 
+/* Top bar with export button - OUTSIDE table */
+.table-header {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    margin-bottom: 16px;
+    gap: 12px;
+}
+
+/* Export button styling - modern and clean */
+.export-wrapper {
+    position: relative;
+}
+
+.export-btn {
+    height: 40px;
+    padding: 0 20px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: white;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 14px;
+    color: #1e293b;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.export-btn:hover:not([disabled]) {
+    background: var(--surface);
+    border-color: #cbd5e1;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+}
+
+.export-btn[disabled] {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.export-menu {
+    position: absolute;
+    right: 0;
+    top: 48px;
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1), 0 2px 8px rgba(0, 0, 0, 0.06);
+    display: flex;
+    flex-direction: column;
+    min-width: 220px;
+    padding: 6px;
+    gap: 2px;
+    z-index: 50;
+    animation: menuSlideIn 0.15s ease-out;
+}
+
+@keyframes menuSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.export-menu-item {
+    background: transparent;
+    border: none;
+    text-align: left;
+    padding: 10px 14px;
+    cursor: pointer;
+    border-radius: 6px;
+    font-size: 14px;
+    color: #334155;
+    font-weight: 500;
+    transition: background 0.15s ease;
+}
+
+.export-menu-item:hover:not([disabled]) {
+    background: var(--surface);
+}
+
+.export-menu-item[disabled] {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+/* table scroller area - modern shadow */
 .table-scroll {
     overflow: auto;
-    border: 1px solid #e5e7eb;
-    border-radius: 8px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: white;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
+/* desktop table */
 .generic-table {
     width: 100%;
     border-collapse: collapse;
-    min-width: 600px;
+    min-width: 680px;
+    background: white;
+    table-layout: fixed;
 }
 
 .generic-table thead th {
     text-align: left;
-    padding: 10px 12px;
-    background: #f8fafc;
-    font-weight: 600;
+    padding: 16px 20px;
+    background: var(--surface);
+    font-weight: 700;
     font-size: 13px;
-    color: #111827;
+    color: #475569;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 2px solid var(--border);
 }
 
 .generic-table tbody td {
-    padding: 10px 12px;
-    border-top: 1px solid #f1f5f9;
+    padding: 16px 20px;
+    border-bottom: 1px solid #f1f5f9;
     vertical-align: middle;
+    word-break: break-word;
+    color: #334155;
+    font-size: 14px;
 }
 
+.generic-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* select column */
 .col-select {
-    width: 44px;
+    width: 48px;
     text-align: center;
+    padding: 16px;
 }
 
-.row:hover {
-    background: #fbfdff;
+.col-select input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    accent-color: var(--primary);
+}
+
+/* row hover / selected - smooth transitions */
+.generic-table tbody tr {
+    transition: background 0.15s ease;
+}
+
+.generic-table tbody .row:hover {
+    background: var(--surface);
 }
 
 .row-selected {
-    background: #eef2ff;
+    background: #eff6ff !important;
+    border-left: 3px solid var(--primary);
 }
 
+/* empty row */
 .empty-row td {
     text-align: center;
-    color: #9ca3af;
-    padding: 24px;
+    color: var(--muted);
+    padding: 48px 20px !important;
+    font-size: 15px;
 }
 
+/* loading overlay - modern blur effect */
 .table-loading-overlay {
     position: absolute;
     inset: 0;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: rgba(255, 255, 255, 0.6);
-    z-index: 5;
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(2px);
+    z-index: 10;
+    border-radius: 12px;
 }
 
+/* spinner - smooth animation */
 .table-spinner {
-    width: 36px;
-    height: 36px;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
-    border: 4px solid rgba(0, 0, 0, 0.05);
-    border-top-color: rgba(0, 0, 0, 0.3);
-    animation: spin 1s linear infinite;
+    border: 3px solid #e2e8f0;
+    border-top-color: var(--primary);
+    animation: spin 0.8s linear infinite;
 }
 
 @keyframes spin {
@@ -75,128 +214,235 @@
     }
 }
 
+/* toolbar when rows selected */
 .table-toolbar {
     display: flex;
     gap: 12px;
     align-items: center;
-    padding: 8px 12px;
+    padding: 12px 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-top: none;
+    border-radius: 0 0 12px 12px;
+    font-size: 14px;
+    color: #475569;
+    font-weight: 500;
 }
 
+.table-toolbar button {
+    padding: 6px 12px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: white;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    transition: all 0.15s ease;
+}
+
+.table-toolbar button:hover {
+    background: var(--surface);
+}
+
+/* pagination - modern and clean */
 .table-pagination {
     display: flex;
     justify-content: space-between;
-    padding: 12px 6px;
+    padding: 16px 8px;
     align-items: center;
-    gap: 8px;
+    gap: 12px;
+    margin-top: 16px;
+    flex-wrap: wrap;
+}
+
+.pagination-info {
+    color: var(--muted);
+    font-size: 14px;
+    font-weight: 500;
 }
 
 .pagination-controls {
     display: flex;
     gap: 6px;
     align-items: center;
+    flex-wrap: wrap;
 }
 
 .pg-btn {
-    min-width: 34px;
-    height: 34px;
-    border-radius: 6px;
-    border: 1px solid #e6e7eb;
-    background: #fff;
+    min-width: 38px;
+    height: 38px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: white;
     cursor: pointer;
+    padding: 0 12px;
+    font-weight: 600;
+    font-size: 14px;
+    color: #475569;
+    transition: all 0.15s ease;
+}
+
+.pg-btn:hover:not([disabled]) {
+    background: var(--surface);
+    border-color: #cbd5e1;
 }
 
 .pg-btn[disabled] {
-    opacity: 0.5;
+    opacity: 0.4;
     cursor: not-allowed;
 }
 
 .pg-btn.active,
 .pg-btn.page-number.active {
-    background: #111827;
-    color: #fff;
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
 }
 
+.pg-dots {
+    padding: 0 8px;
+    color: var(--muted);
+}
+
+/* select for page size */
 .pg-select {
-    height: 34px;
-    padding: 4px 8px;
-    border-radius: 6px;
-}
-
-.muted {
-    color: #9ca3af;
-}
-
-.chip {
-    border: 1px solid #e6e7eb;
-    padding: 6px 10px;
-    border-radius: 999px;
-    background: #fff;
+    height: 38px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: white;
     cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    color: #475569;
+    transition: all 0.15s ease;
+}
+
+.pg-select:hover:not([disabled]) {
+    border-color: #cbd5e1;
+}
+
+/* text styles */
+.muted {
+    color: var(--muted);
+}
+
+/* chips - modern pill design */
+.chip {
+    border: 1px solid var(--border);
+    padding: 6px 12px;
+    border-radius: 6px;
+    background: var(--surface);
+    cursor: default;
     font-size: 13px;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: #475569;
 }
 
 .chip-overflow {
-    border: 1px dashed #d1d5db;
-    padding: 6px 8px;
-    border-radius: 999px;
-    background: #fff;
+    border: 1px solid var(--border);
+    padding: 6px 10px;
+    border-radius: 6px;
+    background: white;
     cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--primary);
+    transition: all 0.15s ease;
 }
 
+.chip-overflow:hover {
+    background: var(--surface);
+}
+
+/* chip dialog */
 .chip-dialog-backdrop {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.35);
+    background: rgba(0, 0, 0, 0.4);
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 60;
+    z-index: 100;
+    animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
 }
 
 .chip-dialog {
-    width: min(520px, 96%);
-    background: #fff;
-    border-radius: 8px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-    /* use max-height so the dialog can shrink on small screens */
-    max-height: 50vh;
+    width: min(520px, 90%);
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    max-height: 70vh;
     display: flex;
     flex-direction: column;
-    /* keep header fixed, body scrollable */
     overflow: hidden;
+    animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .chip-dialog-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 12px 16px;
-    border-bottom: 1px solid #f3f4f6;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
     flex: 0 0 auto;
 }
 
+.chip-dialog-header h3 {
+    font-size: 18px;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0;
+}
+
 .chip-dialog-body {
-    padding: 16px;
+    padding: 20px;
     flex: 1 1 auto;
-    /* take remaining height */
     overflow: auto;
-    /* scroll when content exceeds height */
-    -webkit-overflow-scrolling: touch;
-    /* smooth scrolling on iOS */
 }
 
 .chip-grid {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
+    gap: 10px;
 }
 
 .chip-grid-item {
-    padding: 8px 10px;
-    border-radius: 6px;
-    border: 1px solid #e6e7eb;
+    padding: 10px 14px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    font-size: 14px;
+    color: #475569;
+    font-weight: 500;
 }
 
+/* menus */
 .menu-root {
     position: relative;
     display: inline-block;
@@ -205,72 +451,259 @@
 .menu-trigger {
     background: transparent;
     border: none;
-    padding: 6px;
+    padding: 8px;
     cursor: pointer;
+    border-radius: 6px;
+    transition: background 0.15s ease;
+}
+
+.menu-trigger:hover {
+    background: var(--surface);
 }
 
 .menu-popover {
     position: absolute;
     right: 0;
-    top: 36px;
-    background: #fff;
-    border: 1px solid #e6e7eb;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
-    padding: 8px;
+    top: 40px;
+    background: white;
+    border: 1px solid var(--border);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+    padding: 6px;
     border-radius: 8px;
     z-index: 30;
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 2px;
+    min-width: 160px;
 }
 
 .menu-item {
-    padding: 8px 10px;
+    padding: 10px 14px;
     border-radius: 6px;
     background: transparent;
     border: none;
     text-align: left;
     cursor: pointer;
+    font-size: 14px;
+    color: #334155;
+    font-weight: 500;
+    transition: background 0.15s ease;
+}
+
+.menu-item:hover {
+    background: var(--surface);
 }
 
 .menu-item-primary {
-    background: #111827;
-    color: #fff;
+    background: var(--primary);
+    color: white;
+}
+
+.menu-item-primary:hover {
+    background: var(--primary-hover);
 }
 
 .menu-item-danger {
-    color: #b91c1c;
+    color: #dc2626;
 }
 
+.menu-item-danger:hover {
+    background: #fef2f2;
+}
+
+/* status badges - vibrant colors */
 .status-badge {
-    padding: 6px 10px;
-    border-radius: 999px;
+    padding: 6px 12px;
+    border-radius: 6px;
     font-size: 13px;
+    font-weight: 600;
     display: inline-block;
 }
 
 .status-active {
     background: #dcfce7;
-    color: #166534;
+    color: #15803d;
 }
 
 .status-pending {
     background: #fef3c7;
-    color: #92400e;
+    color: #b45309;
 }
 
 .status-danger {
     background: #fee2e2;
-    color: #991b1b;
+    color: #dc2626;
 }
 
 .status-inactive {
-    background: #f3f4f6;
-    color: #6b7280;
+    background: #f1f5f9;
+    color: #64748b;
 }
 
 .status-default {
-    background: #eef2ff;
-    color: #3730a3;
+    background: #eff6ff;
+    color: #2563eb;
 }
 
+/* --------------------------- RESPONSIVE CARD LAYOUT --------------------------- */
+@media (max-width: 900px) {
+    .generic-table {
+        min-width: unset;
+        border: none;
+    }
+
+    /* hide header row */
+    .generic-table thead {
+        display: none;
+    }
+
+    /* each table row becomes a card */
+    .generic-table tbody tr {
+        display: block;
+        margin: 0 0 16px 0;
+        background: white;
+        border-radius: 12px;
+        padding: 16px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        border: 1px solid var(--border);
+        transition: all 0.2s ease;
+    }
+
+    .generic-table tbody tr:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+    }
+
+    /* make each cell a flex row with label on left, data on right */
+    .generic-table tbody td {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 0;
+        border-bottom: 1px solid #f1f5f9;
+        gap: 16px;
+    }
+
+    .generic-table tbody td:last-child {
+        border-bottom: none;
+    }
+
+    /* label for each cell - on the left */
+    .generic-table tbody td::before {
+        content: attr(data-label);
+        display: block;
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        flex-shrink: 0;
+        min-width: 100px;
+    }
+
+    /* data content on the right */
+    .generic-table tbody td>* {
+        text-align: right;
+        margin-left: auto;
+    }
+
+    /* hide select column label */
+    .generic-table tbody td.col-select::before {
+        content: "";
+        display: none;
+    }
+
+    /* checkbox styling in cards */
+    .col-select {
+        padding: 0 0 12px 0;
+        border-bottom: 1px solid #f1f5f9 !important;
+    }
+
+    /* actions column - no label needed */
+    .generic-table tbody td.col-actions::before {
+        content: "";
+        display: none;
+    }
+
+    .generic-table tbody td.col-actions {
+        padding-top: 12px;
+        border-top: 1px solid #f1f5f9;
+        border-bottom: none !important;
+    }
+
+    /* Compact chips/badges in mobile */
+    .chip,
+    .status-badge {
+        font-size: 12px;
+        padding: 5px 10px;
+    }
+
+    /* Stack pagination on mobile */
+    .table-pagination {
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .pagination-info {
+        width: 100%;
+        text-align: center;
+    }
+
+    .pagination-controls {
+        width: 100%;
+        justify-content: center;
+    }
+
+    /* Smaller buttons on mobile */
+    .pg-btn {
+        min-width: 36px;
+        height: 36px;
+        padding: 0 10px;
+        font-size: 13px;
+    }
+
+    .pg-select {
+        height: 36px;
+        font-size: 13px;
+    }
+
+    /* Export button full width on very small screens */
+    .table-header {
+        margin-bottom: 12px;
+    }
+}
+
+/* Very small phones */
+@media (max-width: 480px) {
+    .generic-table tbody tr {
+        padding: 14px;
+    }
+
+    .generic-table tbody td {
+        padding: 10px 0;
+        font-size: 13px;
+    }
+
+    .generic-table tbody td::before {
+        font-size: 11px;
+    }
+
+    .export-btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .table-header {
+        width: 100%;
+    }
+
+    .export-wrapper {
+        width: 100%;
+    }
+
+    .export-menu {
+        left: 0;
+        right: 0;
+        width: 100%;
+    }
+}
