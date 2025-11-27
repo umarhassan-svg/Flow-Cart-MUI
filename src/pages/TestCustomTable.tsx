@@ -11,60 +11,99 @@ const columns: Column<User>[] = [
   {
     id: "profile",
     header: "User",
+    // keep your custom Avatar (profile picture + name)
     render: (u: User) => <Avatar_C src={u.profilePicturePath} name={u.name} />,
     width: "280px",
   },
+
   {
     id: "email",
     header: "Email",
     accessor: (u: User) => u.email,
     width: "260px",
+    // keep your email styling for visual consistency
     render: (u: User) => (
       <span style={{ color: "#6b7280", fontSize: 14 }}>{u.email}</span>
     ),
   },
+
+  //   {
+  //     id: "createdAt",
+  //     header: "Created",
+  //     accessor: (u: User) => {
+  //       return Date.now();
+  //     }, // expects an ISO string or Date
+  //     type: "date", // CustomTable will format automatically
+  //     width: "180px",
+  //   },
+
+  //   {
+  //     id: "lastLogin",
+  //     header: "Last login",
+  //     accessor: (u: User) => {
+  //       return Date.now();
+  //     }, // ISO or Date
+  //     type: "date",
+  //     width: "180px",
+  //   },
+  //   {
+  //     id: "status",
+  //     header: "Status",
+  //     accessor: (u: User) => u.status, // e.g. 'active' | 'pending' | 'inactive'
+  //     type: "status", // CustomTable renders a status badge
+  //     width: "140px",
+  //     align: "center",
+  //   },
+
   {
     id: "roles",
     header: "Roles",
-    render: (u: User) => (
-      <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-        {u.roles?.length ? (
-          u.roles.map((r, idx) => (
-            <Chip_C
-              key={r}
-              text={r}
-              variant={idx === 0 ? "primary" : "default"}
-            />
-          ))
-        ) : (
-          <span style={{ color: "#9ca3af", fontSize: 13 }}>—</span>
-        )}
-      </div>
-    ),
+    accessor: (u: User) => u.roles, // string[]
+    type: "chips", // first chip shown, overflow handled automatically
+    width: "220px",
+    // optional: show primary role with different visual using className if you want
   },
+
+  {
+    id: "permissions",
+    header: "Permissions",
+    accessor: (u: User) => u.effectivePermissions, // string[] (optional on user)
+    type: "chips", // will show first permission + overflow button when many
+    width: "200px",
+  },
+
   {
     id: "actions",
     header: "Actions",
-    render: (u: User) => (
-      <div style={{ display: "flex", gap: 6 }}>
-        <ActionButton
-          label="Edit"
-          onClick={(e) => {
-            e.stopPropagation();
-            console.log("Edit", u.id);
-          }}
-          variant="primary"
-        />
-        <ActionButton
-          label="Delete"
-          onClick={(e) => {
-            e.stopPropagation();
-            console.log("Delete", u.id);
-          }}
-          variant="ghost"
-        />
-      </div>
-    ),
+    // Use built-in buttons/menu renderer: `type: "buttons"` with `options`
+    type: "buttons",
+    options: [
+      {
+        key: "edit",
+        label: "Edit",
+        variant: "primary",
+        onClick: (u: User) => {
+          // Simple handler — keep as is or wire to router/modal
+          console.log("Edit", u.id);
+        },
+      },
+      {
+        key: "impersonate",
+        label: "Impersonate",
+        variant: "ghost",
+        onClick: (u: User) => {
+          console.log("Impersonate", u.id);
+        },
+      },
+      {
+        key: "delete",
+        label: "Delete",
+        variant: "danger",
+        onClick: (u: User) => {
+          console.log("Delete", u.id);
+        },
+      },
+    ],
     width: "160px",
     align: "center",
   },

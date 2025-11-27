@@ -1,7 +1,7 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { Column } from "../../../types/TableColumn";
-import "./CustomTable.css"; // keep your file name
 
 /* ---------- new pagination + loading props ---------- */
 export interface GenericTableProps<T> {
@@ -24,6 +24,166 @@ export interface GenericTableProps<T> {
   loading?: boolean; // toggle loading overlay
 }
 
+/* ---------- helper components (internal) ---------- */
+
+function formatDate(v: any) {
+  if (!v && v !== 0) return "—";
+  const d = v instanceof Date ? v : new Date(String(v));
+  if (isNaN(d.getTime())) return String(v);
+  // e.g. Jan 02, 2025
+  return d.toLocaleString(undefined, {
+    year: "numeric",
+    month: "short",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+function StatusBadge({ value }: { value: string | number | undefined }) {
+  const text = value ?? "—";
+  const v = String(value ?? "").toLowerCase();
+  const map: Record<string, string> = {
+    active: "status-active",
+    enabled: "status-active",
+    pending: "status-pending",
+    inactive: "status-inactive",
+    disabled: "status-inactive",
+    error: "status-danger",
+    failed: "status-danger",
+    success: "status-success",
+  };
+  const cls = map[v] ?? "status-default";
+  return <span className={`status-badge ${cls}`}>{text}</span>;
+}
+
+function IconDots() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden>
+      <circle cx="5" cy="12" r="1.75" />
+      <circle cx="12" cy="12" r="1.75" />
+      <circle cx="19" cy="12" r="1.75" />
+    </svg>
+  );
+}
+
+function SimpleMenu<T>({
+  options,
+  row,
+}: {
+  options: Column<T>["options"];
+  row: T;
+}) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="menu-root" onMouseLeave={() => setOpen(false)}>
+      <button
+        className="menu-trigger"
+        aria-haspopup="true"
+        aria-expanded={open}
+        onClick={(e) => {
+          e.stopPropagation();
+          setOpen((s) => !s);
+        }}
+        title="Actions"
+      >
+        <IconDots />
+      </button>
+      {open && (
+        <div
+          className="menu-popover"
+          role="menu"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {options?.map((opt, i) => (
+            <button
+              key={opt.key ?? `${i}`}
+              role="menuitem"
+              className={`menu-item menu-item-${opt.variant ?? "default"}`}
+              onClick={() => {
+                if (opt.onClick) opt.onClick(row);
+                setOpen(false);
+              }}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function Chip({ text, onClick }: { text: string; onClick?: () => void }) {
+  return (
+    <button
+      className="chip"
+      onClick={(e) => {
+        e.stopPropagation();
+        if (onClick) onClick();
+      }}
+    >
+      {text}
+    </button>
+  );
+}
+
+function ChipOverflowDialog<T>({
+  open,
+  onClose,
+  chips,
+}: {
+  open: boolean;
+  onClose: () => void;
+  chips: string[];
+}) {
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open, onClose]);
+
+  if (!open) return null;
+  return (
+    <div className="chip-dialog-backdrop" onClick={onClose}>
+      <div
+        className="chip-dialog"
+        role="dialog"
+        aria-modal
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="chip-dialog-header">
+          <strong>Items</strong>
+          <button
+            className="chip-dialog-close"
+            onClick={onClose}
+            aria-label="Close"
+          >
+            ×
+          </button>
+        </div>
+        <div className="chip-dialog-body">
+          {chips.length === 0 ? (
+            <div className="chip-empty">No items</div>
+          ) : (
+            <div className="chip-grid">
+              {chips.map((c, i) => (
+                <div key={i} className="chip-grid-item">
+                  {c}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ===================================================== */
 export default function GenericTable<T>({
   columns = [],
   data = [],
@@ -48,6 +208,12 @@ export default function GenericTable<T>({
   const [page, setPage] = useState<number>(1);
   const [pageSize, setPageSize] = useState<number>(initialPageSize);
 
+  // chip dialog state
+  const [chipDialog, setChipDialog] = useState<{
+    open: boolean;
+    items: string[];
+  }>({ open: false, items: [] });
+
   // ensure page valid when data/total/pageSize changes
   useEffect(() => {
     const effectiveTotal = serverSide
@@ -57,7 +223,8 @@ export default function GenericTable<T>({
       : data.length;
     const totalPages = Math.max(1, Math.ceil(effectiveTotal / pageSize));
     if (page > totalPages) setPage(totalPages);
-  }, [data, total, pageSize, serverSide, page]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data, total, pageSize, serverSide]);
 
   // expose page changes to parent if requested (serverSide typical)
   useEffect(() => {
@@ -128,6 +295,68 @@ export default function GenericTable<T>({
     // when page size changes, reset to page 1 for predictable behavior
     setPageSize(nextSize);
     setPage(1);
+  };
+
+  /* ---------- render cell using built-in types if provided ---------- */
+  const renderCellContent = (col: Column<T>, row: T, rIdx: number) => {
+    // priority: explicit render -> built-in type handlers -> accessor -> property
+    if (col.render) return col.render(row, rIdx);
+
+    const value = col.accessor
+      ? typeof col.accessor === "function"
+        ? col.accessor(row)
+        : (row as any)[col.accessor]
+      : (row as any)[col.id];
+
+    if (col.type === "date") return <span>{formatDate(value)}</span>;
+
+    if (col.type === "status") return <StatusBadge value={value} />;
+
+    if (col.type === "chip") {
+      const text = typeof value === "string" ? value : String(value ?? "");
+      if (!text) return <span className="muted">—</span>;
+      return <Chip text={text} />;
+    }
+
+    if (col.type === "chips") {
+      const arr: string[] = Array.isArray(value)
+        ? value.map((v) => String(v))
+        : value
+        ? [String(value)]
+        : [];
+      if (arr.length === 0) return <span className="muted">—</span>;
+      if (arr.length === 1) return <Chip text={arr[0]} />;
+      // multiple -> show first and overflow chip
+      const restCount = arr.length - 1;
+      return (
+        <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+          <Chip text={arr[0]} />
+          <button
+            className="chip-overflow"
+            onClick={(e) => {
+              e.stopPropagation();
+              setChipDialog({ open: true, items: arr });
+            }}
+            aria-haspopup
+          >
+            +{restCount}
+          </button>
+        </div>
+      );
+    }
+
+    if (col.type === "buttons") {
+      // if options provided, use them; else try to use row.actions (convention)
+      const opts =
+        col.options ?? ((row as any).actions as Column<T>["options"]) ?? [];
+      if (!opts || opts.length === 0) return <span className="muted">—</span>;
+      return <SimpleMenu options={opts} row={row} />;
+    }
+
+    // default: simple text
+    if (value === null || value === undefined || value === "")
+      return <span className="muted">—</span>;
+    return <span>{String(value)}</span>;
   };
 
   /* ---------- render ---------- */
@@ -205,37 +434,20 @@ export default function GenericTable<T>({
                     </td>
                   )}
 
-                  {columns.map((col) => {
-                    let value: React.ReactNode;
-                    if (col.accessor !== undefined) {
-                      if (typeof col.accessor === "function") {
-                        value = col.accessor(row);
-                      } else {
-                        value = (row as any)[col.accessor];
+                  {columns.map((col) => (
+                    <td
+                      key={col.id}
+                      data-label={
+                        typeof col.header === "string" ? col.header : ""
                       }
-                    } else {
-                      value = (row as any)[col.id];
-                    }
-
-                    const content = col.render
-                      ? col.render(row, rIdx)
-                      : value ?? "";
-
-                    return (
-                      <td
-                        key={col.id}
-                        data-label={
-                          typeof col.header === "string" ? col.header : ""
-                        }
-                        className={`cell col-${col.id} ${col.className ?? ""} ${
-                          col.align ? `align-${col.align}` : ""
-                        }`}
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        {content}
-                      </td>
-                    );
-                  })}
+                      className={`cell col-${col.id} ${col.className ?? ""} ${
+                        col.align ? `align-${col.align}` : ""
+                      }`}
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {renderCellContent(col, row, rIdx)}
+                    </td>
+                  ))}
                 </tr>
               );
             })}
@@ -372,6 +584,12 @@ export default function GenericTable<T>({
           </div>
         </div>
       )}
+
+      <ChipOverflowDialog
+        open={chipDialog.open}
+        onClose={() => setChipDialog({ open: false, items: [] })}
+        chips={chipDialog.items}
+      />
     </div>
   );
 }
