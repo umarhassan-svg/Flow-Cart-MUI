@@ -1,0 +1,233 @@
+/* userstable.css - styles for the UsersTable header + search + responsiveness */
+
+.users-table-root {
+    width: 100%;
+    box-sizing: border-box;
+    font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    color: #0f172a;
+    margin-top: 40px;
+}
+
+/* header area */
+.users-table-header {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    padding: 8px 6px;
+}
+
+/* title (left) */
+.users-table-title {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+    flex: 0 0 auto;
+    /* take only natural space */
+}
+
+.title-main {
+    font-weight: 700;
+    font-size: 2rem;
+    line-height: 1.1;
+}
+
+.title-sub {
+    font-size: 0.875rem;
+    color: #6b7280;
+}
+
+/* controls on the right - flexible area */
+.users-table-controls {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    justify-content: flex-end;
+    min-width: 0;
+    flex: 1 1 auto;
+    /* grow/shrink to fill remaining space */
+}
+
+/* search area should grow but not overflow the title */
+.users-table-controls>.search-wrapper {
+    flex: 1 1 240px;
+    /* grow, prefer 240px */
+    max-width: 420px;
+    /* cap max width so it doesn't push title */
+    min-width: 0;
+    /* allow shrinking */
+}
+
+/* actions keep natural size */
+.users-table-controls>.actions-right {
+    flex: 0 0 auto;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+/* search wrapper */
+.search-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: #fff;
+    border: 1px solid #e6e7eb;
+    padding: 6px 10px;
+    border-radius: 10px;
+    width: 100%;
+    box-shadow: 0 6px 18px rgba(2, 6, 23, 0.04);
+    transition: box-shadow 120ms ease, border-color 120ms ease;
+}
+
+/* focus style when input inside is focused */
+.search-wrapper:focus-within {
+    border-color: #cbd5e1;
+    box-shadow: 0 10px 30px rgba(2, 6, 23, 0.06);
+}
+
+/* input inside search wrapper */
+.search-input {
+    border: none;
+    outline: none;
+    font-size: 14px;
+    padding: 6px;
+    width: 100%;
+    min-width: 0;
+    /* critical for proper shrinking in flexbox */
+    max-width: 300px;
+    /* ensures input doesn't become too long */
+}
+
+.search-input::placeholder {
+    color: #9ca3af;
+}
+
+/* clear button stays fixed size */
+.search-clear {
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    padding: 6px;
+    color: #6b7280;
+    flex-shrink: 0;
+}
+
+/* buttons */
+.actions-right .btn {
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid #e6e7eb;
+    cursor: pointer;
+    font-weight: 700;
+    background: #fff;
+    transition: transform 120ms ease, box-shadow 120ms ease;
+}
+
+.actions-right .btn:active {
+    transform: translateY(1px);
+}
+
+.actions-right .btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.actions-right .btn-primary {
+    background: linear-gradient(180deg, #111827, #0f172a);
+    color: #fff;
+    border: none;
+    box-shadow: 0 8px 20px rgba(2, 6, 23, 0.08);
+}
+
+.actions-right .btn-outline {
+    background: #fff;
+    color: #111827;
+}
+
+/* table body spacing */
+.users-table-body {
+    width: 100%;
+}
+
+/* ===== RESPONSIVE LAYOUTS ===== */
+
+/* Tablet / small desktop: stack header items if needed */
+@media (max-width: 900px) {
+    .users-table-header {
+        gap: 12px;
+    }
+
+    .users-table-controls>.search-wrapper {
+        max-width: 240px;
+    }
+}
+
+/* Small screens: stack header vertically and make controls full-width */
+@media (max-width: 720px) {
+    .users-table-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+
+    .users-table-controls {
+        flex-direction: row;
+        align-items: center;
+        gap: 8px;
+        justify-content: space-between;
+    }
+
+    .users-table-controls>.search-wrapper {
+        flex: 1 1 100%;
+        max-width: none;
+    }
+
+    .users-table-controls>.actions-right {
+        flex: 0 0 auto;
+    }
+
+    .actions-right .btn {
+        padding: 8px 10px;
+        font-size: 14px;
+    }
+}
+
+/* Extra-small screens: stack the controls vertically */
+@media (max-width: 480px) {
+    .users-table-controls {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+    }
+
+    .users-table-controls>.search-wrapper {
+        width: 100%;
+    }
+
+    .users-table-controls>.actions-right {
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+    }
+
+    .actions-right .btn {
+        flex: 1 1 auto;
+        margin: 0;
+    }
+}
+
+/* Large screens: a bit more breathing room */
+@media (min-width: 1200px) {
+    .users-table-header {
+        padding: 12px 8px;
+    }
+
+    .users-table-controls>.search-wrapper {
+        flex: 1 1 360px;
+        max-width: 400px;
+    }
+}

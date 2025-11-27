@@ -1,0 +1,116 @@
+/* Header area */
+.orders-table-header {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    padding: 8px 6px;
+    margin-top: 40px
+}
+
+/* Title */
+.orders-table-title {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+    flex: 0 0 auto;
+    /* take only natural space */
+}
+
+/* Controls container */
+.orders-table-controls {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    justify-content: flex-end;
+    flex: 1 1 auto;
+    /* grow/shrink to fill remaining space */
+    min-width: 0;
+}
+
+/* Search wrapper */
+.orders-table-controls>.search-wrapper {
+    flex: 1 1 240px;
+    /* grow but prefer 240px */
+    max-width: 400px;
+    /* prevent too long on large screens */
+    min-width: 0;
+    /* allow shrinking */
+}
+
+/* Search input */
+.search-input {
+    border: none;
+    outline: none;
+    font-size: 14px;
+    padding: 6px;
+    width: 100%;
+    max-width: 260px;
+    min-width: 0;
+}
+
+/* Clear button stays fixed */
+.search-clear {
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    padding: 6px;
+    color: #6b7280;
+    flex-shrink: 0;
+}
+
+/* Actions buttons */
+.orders-table-controls>.actions-right {
+    display: flex;
+    gap: 8px;
+    flex: 0 0 auto;
+    /* keep buttons natural size */
+    align-items: center;
+}
+
+/* Responsive tweaks */
+@media (max-width: 720px) {
+    .orders-table-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+
+    .orders-table-controls {
+        flex-direction: row;
+        justify-content: space-between;
+        gap: 8px;
+    }
+
+    .orders-table-controls>.search-wrapper {
+        flex: 1 1 100%;
+        max-width: none;
+    }
+
+    .orders-table-controls>.actions-right {
+        flex: 0 0 auto;
+    }
+}
+
+@media (max-width: 480px) {
+    .orders-table-controls {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .orders-table-controls>.search-wrapper {
+        width: 100%;
+    }
+
+    .orders-table-controls>.actions-right {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .actions-right .btn {
+        flex: 1 1 auto;
+    }
+}

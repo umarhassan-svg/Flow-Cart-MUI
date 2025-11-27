@@ -6,8 +6,10 @@ import PrivateRoute from "../components/PrivateRoute/PrivateRoute";
 // Pages
 import Login from "../pages/Login";
 import Unauthorized from "../pages/unauthorized";
-import UsersManagement from "../pages/admin/UsersManagement";
-import RolesManagement from "../pages/admin/RolesManagement";
+// import UsersManagement from "../pages/admin/UsersManagement";
+import UsersManagement from "../pages/UserManagement2/UserManagement2";
+//import RolesManagement from "../pages/admin/RolesManagement";
+import RolesManagement from "../pages/RolesManagement2/RolesManagement2";
 import { AdminDashboard } from "../pages/admin/Dashboard";
 import ManagerDashboard from "../pages/manager/ManagerDashboard";
 import Home from "../pages/Home";
@@ -16,14 +18,15 @@ import ProductDetailPage from "../pages/ProductDetailPage";
 import CheckOutPage from "../pages/CheckOutPage";
 import BulkOrderPage from "../pages/BulkOrderPage";
 import { NavProvider } from "../context/NavContext";
-import OrdersListPage from "../pages/OrdersListPage";
+// import OrdersListPage from "../pages/OrdersListPage";
+import OrdersListPage from "../pages/OrdersListPage2/OrdersListPage";
 import ProfilePage from "../pages/ProfilePage";
 import EmployeesPage from "../pages/EmployeesPage";
 import TestErrorBoundry from "../pages/TestErrorBoundry";
 import ErrorBoundary from "../pages/ErrorBoundary/ErrorBoundary";
 import { SessionProvider } from "../context/SessionContext";
 import { CartProvider } from "../context/CartContext";
-import UsersTable from "../pages/UserManagement";
+import UsersTable from "../pages/UserManagement2/UserManagement2";
 /**
  * Routes:
  * - /admin/users           -> list (requires users:read)

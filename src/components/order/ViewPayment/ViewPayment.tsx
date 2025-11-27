@@ -19,7 +19,7 @@ export type PaymentInfo = {
   paidAt?: string;
 };
 
-export function ViewPayment({
+export default function ViewPayment({
   open,
   onClose,
   payment,

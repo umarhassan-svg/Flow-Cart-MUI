@@ -1,36 +1,36 @@
-/* src/components/admin/UsersTable/UsersTable.tsx */
+/* src/components/admin/RolesTable/RolesTable.tsx */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useEffect, useState } from "react";
 import type { ChangeEvent } from "react";
-import type { User } from "../../../types/User";
+import type { Role } from "../../../types/Roles";
 import CustomTable from "../CustomTable/CustomTable";
 import type { Column } from "../../../types/TableColumn";
-import { Avatar_C } from "../../../utils/helperUserTable";
 import { useNavigate } from "react-router-dom";
-import "./usertable.css";
-export interface UsersTableProps {
-  users: User[];
+import "./rolestable.css";
+
+export interface RolesTableProps {
+  roles: Role[];
   loading: boolean;
   total: number;
-  page: number; // zero-based page
+  page: number; // zero-based
   rowsPerPage: number;
-  onPageChange?: (event: unknown, page: number) => void; // parent handler
+  onPageChange?: (event: unknown, page: number) => void;
   onRowsPerPageChange?: (
     e: ChangeEvent<HTMLSelectElement | HTMLInputElement>
   ) => void;
-  onEdit?: (u: User) => void;
-  onDelete?: (u: User) => void;
+  onEdit?: (r: Role) => void;
+  onDelete?: (r: Role) => void;
   onSelectionChange?: (selected: Array<string | number>) => void;
-  onRowClick?: (row: User, idx: number) => void;
+  onRowClick?: (row: Role, idx: number) => void;
 
-  /* NEW optional callbacks */
+  /* optional callbacks */
   onSearch?: (value: string) => void;
   onCreate?: () => void;
   onRefresh?: () => void;
 }
 
-export default function UsersTable({
-  users,
+export default function RolesTable({
+  roles,
   loading,
   total,
   page,
@@ -44,7 +44,7 @@ export default function UsersTable({
   onSearch,
   onCreate,
   onRefresh,
-}: UsersTableProps) {
+}: RolesTableProps) {
   const navigate = useNavigate();
 
   // local page state for CustomTable (1-based)
@@ -55,7 +55,6 @@ export default function UsersTable({
   const [searchTyping, setSearchTyping] = useState<string>("");
   const [searchValue, setSearchValue] = useState<string>("");
 
-  // keep local page/pageSize in sync when parent changes
   useEffect(() => {
     setLocalPage(Math.max(1, page + 1));
   }, [page]);
@@ -70,12 +69,11 @@ export default function UsersTable({
       if (searchValue !== searchTyping) setSearchValue(searchTyping);
       if (typeof onSearch === "function") {
         onSearch(searchTyping.trim());
-        // if parent expects page to reset to 0, call onPageChange
         if (onPageChange) {
           try {
             onPageChange(null, 0);
           } catch {
-            // ignore if parent signature is different
+            // ignore
           }
         }
       }
@@ -84,38 +82,28 @@ export default function UsersTable({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchTyping]);
 
-  // Build columns and wire up edit/delete handlers via props
-  const columns: Column<User>[] = [
+  // Build columns for roles
+  const columns: Column<Role>[] = [
     {
-      id: "profile",
-      header: "User",
-      render: (u: User) => (
-        <Avatar_C src={u.profilePicturePath} name={u.name} />
-      ),
-      width: "280px",
-    },
-    {
-      id: "email",
-      header: "Email",
-      accessor: (u: User) => u.email,
+      id: "name",
+      header: "Role",
+      accessor: (r: Role) => r.name,
+      render: (r: Role) => <strong style={{ fontSize: 14 }}>{r.name}</strong>,
       width: "260px",
-      render: (u: User) => (
-        <span style={{ color: "#6b7280", fontSize: 14 }}>{u.email}</span>
-      ),
     },
     {
-      id: "roles",
-      header: "Roles",
-      accessor: (u: User) => u.roles,
+      id: "pages",
+      header: "Pages",
+      accessor: (r: Role) => r.pages,
       type: "chips",
-      width: "220px",
+      width: "300px",
     },
     {
       id: "permissions",
       header: "Permissions",
-      accessor: (u: User) => u.effectivePermissions,
+      accessor: (r: Role) => r.permissions ?? [],
       type: "chips",
-      width: "200px",
+      width: "300px",
     },
     {
       id: "actions",
@@ -126,18 +114,20 @@ export default function UsersTable({
           key: "edit",
           label: "Edit",
           variant: "primary",
-          onClick: (u: User) => {
-            if (onEdit) onEdit(u);
-            else console.log("Edit user:", u);
+          onClick: (r: Role) => {
+            if (onEdit) onEdit(r);
+            else navigate(`/admin/roles/${r.id}/edit`);
           },
         },
         {
           key: "delete",
           label: "Delete",
           variant: "danger",
-          onClick: (u: User) => {
-            if (onDelete) onDelete(u);
-            else console.log("Delete user:", u);
+          onClick: (r: Role) => {
+            if (onDelete) onDelete(r);
+            else {
+              // fallback no-op
+            }
           },
         },
       ],
@@ -169,14 +159,14 @@ export default function UsersTable({
 
   const handleCreateClick = () => {
     if (onCreate) onCreate();
-    else navigate("/admin/users/create");
+    else navigate("/admin/roles/create");
   };
 
   const handleRefresh = () => {
     if (onRefresh) onRefresh();
     else if (onPageChange) {
       try {
-        onPageChange(null, page); // re-trigger parent load for current page
+        onPageChange(null, page); // re-trigger parent load
       } catch {
         // ignore
       }
@@ -184,25 +174,25 @@ export default function UsersTable({
   };
 
   return (
-    <div className="users-table-root">
-      {/* Header & controls (plain divs, no MUI) */}
-      <div className="users-table-header">
-        <div className="users-table-title">
-          <div className="title-main">User Management</div>
+    <div className="roles-table-root">
+      {/* Header & controls (plain divs) */}
+      <div className="roles-table-header">
+        <div className="roles-table-title">
+          <div className="title-main">Roles Management</div>
           <div className="title-sub">
-            Create and manage users, roles, and access
+            Create and manage roles, pages, and permissions
           </div>
         </div>
 
-        <div className="users-table-controls">
+        <div className="roles-table-controls">
           <div className="search-wrapper">
             <input
               type="search"
               className="search-input"
-              placeholder="Search users by name or email..."
+              placeholder="Search roles, pages or permissions..."
               value={searchTyping}
               onChange={(e) => setSearchTyping(e.target.value)}
-              aria-label="Search users"
+              aria-label="Search roles"
             />
             {searchTyping && (
               <button
@@ -233,19 +223,19 @@ export default function UsersTable({
               type="button"
               className="btn btn-primary"
               onClick={handleCreateClick}
-              aria-label="Add user"
+              aria-label="Add role"
             >
-              + Add user
+              + Add role
             </button>
           </div>
         </div>
       </div>
 
       {/* Table */}
-      <div className="users-table-body">
-        <CustomTable<User>
+      <div className="roles-table-body">
+        <CustomTable<Role>
           columns={columns}
-          data={users}
+          data={roles}
           pagination
           loading={loading}
           total={total}
