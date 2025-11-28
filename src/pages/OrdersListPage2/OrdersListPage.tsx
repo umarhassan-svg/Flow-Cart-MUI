@@ -1,7 +1,7 @@
 /* src/pages/OrdersListPage.tsx */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useEffect, useState, useMemo } from "react";
-import { Box, Alert, Typography, Stack } from "@mui/material";
+import { useEffect, useState, useMemo, type ChangeEvent } from "react";
+import { Alert, Typography } from "@mui/material";
 import type { Order, PaymentInfo } from "../../types/Order";
 import ManageOrder from "../../components/order/ManageOrder/ManageOrder";
 import ViewPayment from "../../components/order/ViewPayment/ViewPayment";
@@ -197,7 +197,9 @@ const OrdersListPage = () => {
     setPage(newPageZeroBased);
   };
 
-  const handleRowsPerPageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleRowsPerPageChange = (
+    e: ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
     setRowsPerPage(parseInt(e.target.value, 10));
     setPage(0);
   };

@@ -1,6 +1,7 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* src/components/order/OrdersTable/OrdersTable.tsx */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import type { ChangeEvent } from "react";
 import type { Order } from "../../../types/Order";
 import CustomTable from "../../CustomUI/CustomTable/CustomTable";
@@ -58,6 +59,7 @@ export default function OrdersTable({
 
   useEffect(() => {
     setLocalPage(Math.max(1, page + 1));
+    console.log(localPage);
   }, [page]);
 
   useEffect(() => {

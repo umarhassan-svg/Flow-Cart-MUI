@@ -1,6 +1,6 @@
 /* src/components/admin/UsersTable/UsersTable.tsx */
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import type { ChangeEvent } from "react";
 import type { User } from "../../../types/User";
 import CustomTable from "../CustomTable/CustomTable";
@@ -58,6 +58,7 @@ export default function UsersTable({
   // keep local page/pageSize in sync when parent changes
   useEffect(() => {
     setLocalPage(Math.max(1, page + 1));
+    console.log(localPage);
   }, [page]);
 
   useEffect(() => {

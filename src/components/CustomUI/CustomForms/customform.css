@@ -1,0 +1,242 @@
+/* customform.css - modern & professional styles */
+
+:root {
+    --bg: #f7f8fb;
+    --card: #ffffff;
+    --muted: #6b7280;
+    --primary: #2563eb;
+    --danger: #ef4444;
+    --input-border: #e6e9ef;
+    --shadow: 0 6px 18px rgba(16, 24, 40, 0.06);
+    --radius: 10px;
+    --radius-sm: 8px;
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+}
+
+.cf-container {
+    background: linear-gradient(180deg, var(--bg), #ffffff);
+    padding: 28px;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+}
+
+.cf-form {
+    width: 100%;
+    max-width: 820px;
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 22px;
+    box-shadow: var(--shadow);
+    border: 1px solid rgba(15, 23, 42, 0.04);
+}
+
+/* grid layout */
+.cf-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+/* label */
+.cf-label {
+    font-size: 13px;
+    color: #111827;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.cf-required {
+    color: var(--danger);
+    font-size: 14px;
+    margin-left: 6px;
+}
+
+/* standard inputs */
+.cf-input,
+.cf-textarea,
+.cf-file,
+.cf-select {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--input-border);
+    outline: none;
+    font-size: 14px;
+    transition: box-shadow .15s ease, border-color .15s ease;
+    background: #fff;
+    box-sizing: border-box;
+}
+
+.cf-input:focus,
+.cf-textarea:focus,
+.cf-file:focus,
+.cf-select:focus {
+    box-shadow: 0 6px 14px rgba(37, 99, 235, 0.08);
+    border-color: rgba(37, 99, 235, 0.6);
+}
+
+/* textarea */
+.cf-textarea {
+    min-height: 110px;
+    resize: vertical;
+}
+
+/* error */
+.cf-error {
+    color: var(--danger);
+    font-size: 13px;
+    margin-top: 6px;
+}
+
+/* checkbox */
+.cf-checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.cf-checkbox-label input[type="checkbox"] {
+    display: none;
+}
+
+.cf-checkbox-custom {
+    width: 18px;
+    height: 18px;
+    border-radius: 6px;
+    border: 1px solid var(--input-border);
+    display: inline-block;
+    position: relative;
+    background: #fff;
+    box-sizing: border-box;
+}
+
+.cf-checkbox-label input[type="checkbox"]:checked+.cf-checkbox-custom {
+    background: linear-gradient(180deg, rgba(37, 99, 235, 0.95), rgba(56, 189, 248, 0.95));
+    border-color: rgba(37, 99, 235, 0.95);
+}
+
+.cf-checkbox-label input[type="checkbox"]:checked+.cf-checkbox-custom::after {
+    content: "";
+    position: absolute;
+    left: 4px;
+    top: 1px;
+    width: 6px;
+    height: 10px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+}
+
+/* radio */
+.cf-radio-group {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.cf-radio-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.cf-radio-label input[type="radio"] {
+    display: none;
+}
+
+.cf-radio-custom {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 1px solid var(--input-border);
+    display: inline-block;
+    position: relative;
+    box-sizing: border-box;
+}
+
+.cf-radio-label input[type="radio"]:checked+.cf-radio-custom {
+    border-color: rgba(37, 99, 235, 0.95);
+    background: #fff;
+    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.08);
+}
+
+.cf-radio-label input[type="radio"]:checked+.cf-radio-custom::after {
+    content: "";
+    position: absolute;
+    left: 4px;
+    top: 4px;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: rgba(37, 99, 235, 0.95);
+}
+
+/* file input - nicer wrapper */
+.cf-file {
+    padding: 10px;
+    border-radius: var(--radius-sm);
+}
+
+/* actions */
+.cf-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 6px;
+}
+
+.cf-primary {
+    background: linear-gradient(180deg, var(--primary), #1e40af);
+    color: #fff;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 8px 24px rgba(37, 99, 235, 0.12);
+    transition: transform .08s ease, box-shadow .12s ease, opacity .12s ease;
+}
+
+.cf-primary:hover {
+    transform: translateY(-1px);
+}
+
+.cf-primary:active {
+    transform: translateY(0);
+}
+
+.cf-button {
+    background: transparent;
+    border: 1px solid var(--input-border);
+    padding: 9px 14px;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+/* small helper */
+.cf-help {
+    font-size: 12px;
+    color: var(--muted);
+}
+
+/* responsive */
+@media (max-width: 640px) {
+    .cf-form {
+        padding: 16px;
+    }
+
+    .cf-actions {
+        justify-content: stretch;
+    }
+
+    .cf-primary {
+        width: 100%;
+    }
+}

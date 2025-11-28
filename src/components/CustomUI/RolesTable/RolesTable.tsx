@@ -1,6 +1,6 @@
 /* src/components/admin/RolesTable/RolesTable.tsx */
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import type { ChangeEvent } from "react";
 import type { Role } from "../../../types/Roles";
 import CustomTable from "../CustomTable/CustomTable";
@@ -57,6 +57,7 @@ export default function RolesTable({
 
   useEffect(() => {
     setLocalPage(Math.max(1, page + 1));
+    console.log(localPage);
   }, [page]);
 
   useEffect(() => {

@@ -25,7 +25,7 @@ import CancelIcon from "@mui/icons-material/Cancel";
 import type { Order } from "../types/Order";
 import ManageOrder from "../components/order/ManageOrder/ManageOrder";
 import OrderActionsMenu from "../components/order/OrderActionsMenu/OrderActionsMenu";
-import { ViewPayment } from "../components/order/ViewPayment/ViewPayment";
+import ViewPayment from "../components/order/ViewPayment/ViewPayment";
 import { useAuth } from "../context/AuthContext";
 import { ordersService } from "../services/orders.service";
 import LayoutMain from "../components/layout/layoutMain";

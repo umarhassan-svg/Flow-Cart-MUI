@@ -27,6 +27,7 @@ import ErrorBoundary from "../pages/ErrorBoundary/ErrorBoundary";
 import { SessionProvider } from "../context/SessionContext";
 import { CartProvider } from "../context/CartContext";
 import UsersTable from "../pages/UserManagement2/UserManagement2";
+import TCustomForm from "../pages/TCustomForm";
 /**
  * Routes:
  * - /admin/users           -> list (requires users:read)
@@ -238,6 +239,9 @@ const router = createBrowserRouter([
         path: "/test-custom-table",
         element: <UsersTable />,
       },
+
+      // Login
+      { path: "/test-customform", element: <TCustomForm /> },
 
       // Unauthorized
       { path: "/unauthorized", element: <Unauthorized /> },
