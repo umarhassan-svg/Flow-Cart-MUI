@@ -1,0 +1,247 @@
+:root {
+    --nt-bg: #ffffff;
+    --nt-shadow: 0 8px 28px rgba(12, 15, 20, 0.06);
+    --nt-radius: 12px;
+    --nt-gap: 12px;
+    --accent-default: #3b82f6;
+}
+
+/* Toast card */
+.nt-toast {
+    pointer-events: auto;
+    background: var(--nt-bg);
+    min-width: 320px;
+    max-width: 420px;
+    border-radius: var(--nt-radius);
+    box-shadow: var(--nt-shadow);
+    overflow: hidden;
+    transform-origin: top right;
+    transition: transform 160ms cubic-bezier(.2, .9, .3, 1), opacity 160ms ease;
+    opacity: 1;
+    border: 1px solid rgba(16, 24, 40, 0.04);
+    display: flex;
+    flex-direction: column;
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    --nt-accent: var(--accent-default);
+}
+
+/* subtle appear animation (won't run if reduced motion) */
+@media (prefers-reduced-motion: no-preference) {
+    .nt-toast {
+        transform: translateY(-6px);
+        animation: nt-enter 220ms cubic-bezier(.2, .9, .3, 1) forwards;
+    }
+
+    @keyframes nt-enter {
+        from {
+            opacity: 0;
+            transform: translateY(-8px) scale(0.995);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+    }
+}
+
+/* layout */
+.nt-body {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    padding: 12px 14px;
+}
+
+.nt-icon-wrap {
+    width: 44px;
+    height: 44px;
+    flex: 0 0 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    background: rgba(0, 0, 0, 0.03);
+}
+
+/* Icon */
+.nt-icon {
+    width: 20px;
+    height: 20px;
+    fill: currentColor;
+    color: var(--nt-accent);
+}
+
+/* content */
+.nt-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.nt-title {
+    font-weight: 700;
+    font-size: 14px;
+    margin-bottom: 4px;
+    color: inherit;
+}
+
+.nt-message {
+    color: rgba(12, 18, 26, 0.78);
+    font-size: 13px;
+    line-height: 1.28;
+    word-break: break-word;
+    max-width: 100%;
+}
+
+/* controls */
+.nt-controls {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-left: 8px;
+    flex-shrink: 0;
+}
+
+/* action — primary-looking but minimal */
+.nt-action {
+    background: transparent;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    color: inherit;
+    padding: 6px 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 13px;
+    white-space: nowrap;
+}
+
+.nt-action:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 16px rgba(2, 6, 23, 0.04);
+}
+
+/* close button */
+.nt-close {
+    background: transparent;
+    
+    border: none;
+    padding: 8px;
+    border-radius: 8px;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.nt-close:hover {
+    background: rgba(0, 0, 0, 0.04);
+}
+
+.nt-close-icon {
+    width: 14px;
+    height: 14px;
+    fill: rgba(0, 0, 0, 0.56);
+}
+
+/* progress bar */
+.nt-progress {
+    height: 4px;
+    background: rgba(0, 0, 0, 0.04);
+    position: relative;
+    overflow: hidden;
+}
+
+.nt-progress-bar {
+    height: 100%;
+    transform-origin: left center;
+    transform: scaleX(0);
+    background: linear-gradient(90deg, var(--nt-accent), color-mix(in srgb, var(--nt-accent) 70%, black 6%));
+    transition: transform 120ms linear;
+}
+
+/* variant styling (set color & accent) */
+.nt-toast.status-success {
+    background: #ecfdf3;
+    color: #065f46;
+    --nt-accent: #10b981;
+    border-color: rgba(6, 95, 70, 0.06);
+}
+
+.nt-toast.status-info {
+    background: #eef2ff;
+    color: #0f172a;
+    --nt-accent: #3b82f6;
+    border-color: rgba(59, 130, 246, 0.06);
+}
+
+.nt-toast.status-active {
+    background: #f0fdf9;
+    color: #065f46;
+    --nt-accent: #06b6a4;
+    border-color: rgba(6, 95, 70, 0.04);
+}
+
+.nt-toast.status-pending {
+    background: #fffbeb;
+    color: #92400e;
+    --nt-accent: #f59e0b;
+    border-color: rgba(168, 85, 0, 0.06);
+}
+
+.nt-toast.status-error {
+    background: #fff7f7;
+    color: #991b1b;
+    --nt-accent: #ef4444;
+    border-color: rgba(220, 38, 38, 0.06);
+}
+
+.nt-toast.status-inactive {
+    background: #fbfdff;
+    color: #475569;
+    --nt-accent: #94a3b8;
+    border-color: rgba(0, 0, 0, 0.02);
+}
+
+.nt-toast.status-default {
+    background: #f1f8ff;
+    color: #0f172a;
+    --nt-accent: #3b82f6;
+    border-color: rgba(59, 130, 246, 0.06);
+}
+
+.nt-toast.status-unknown {
+    background: #fbf8ff;
+    color: #3f3d56;
+    --nt-accent: #7c3aed;
+    border-color: rgba(124, 58, 237, 0.04);
+}
+
+/* mobile */
+@media (max-width: 520px) {
+    .nt-toast {
+        min-width: 280px;
+        width: calc(100% - 24px);
+        max-width: calc(100% - 24px);
+    }
+
+    .nt-icon-wrap {
+        width: 40px;
+        height: 40px;
+    }
+}
+
+/* accessibility */
+.nt-toast:focus {
+    outline: 3px solid rgba(59, 130, 246, 0.14);
+    outline-offset: 4px;
+}
+
+/* reduced motion */
+@media (prefers-reduced-motion: reduce) {
+
+    .nt-toast,
+    .nt-progress-bar,
+    .nt-action {
+        transition: none !important;
+        animation: none !important;
+        transform: none !important;
+    }
+}

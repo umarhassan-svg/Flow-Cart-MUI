@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useMemo, useState } from "react";
 import type { Column } from "../../../types/TableColumn";
@@ -58,6 +57,19 @@ export default function GenericTable<T>({
     items: string[];
   }>({ open: false, items: [] });
   const [exportMenuOpen, setExportMenuOpen] = useState(false);
+
+  // Filter out columns that have options: [] (empty arrays) so we don't render useless columns.
+  // Memoize so we only recalc when `columns` changes.
+  const filteredColumns: Column<T>[] = useMemo(
+    () =>
+      columns.filter((column) => {
+        const opts = (column as any)?.options;
+        // if options is an array and it's empty -> drop the column
+        if (Array.isArray(opts) && opts.length === 0) return false;
+        return true;
+      }),
+    [columns]
+  );
 
   useEffect(() => {
     const effectiveTotal = serverSide
@@ -214,7 +226,7 @@ export default function GenericTable<T>({
       .slice(0, 19)
       .replace(/[:T]/g, "-")}.csv`;
 
-    exportTableCSV(columns, rowsToExport, filename);
+    exportTableCSV(filteredColumns, rowsToExport, filename);
     setExportMenuOpen(false);
   };
 
@@ -270,17 +282,6 @@ export default function GenericTable<T>({
               >
                 📋 Export current page
               </button>
-              <button
-                className="export-menu-item"
-                onClick={() => handleExport("selected")}
-                disabled={!hasSelection}
-                role="menuitem"
-                title={
-                  !hasSelection ? "Select rows to export only selected" : ""
-                }
-              >
-                ✓ Export selected rows
-              </button>
             </div>
           )}
         </div>
@@ -308,7 +309,7 @@ export default function GenericTable<T>({
                 </th>
               )}
 
-              {columns.map((col) => (
+              {filteredColumns.map((col) => (
                 <th
                   key={col.id}
                   style={{ width: col.width }}
@@ -356,7 +357,7 @@ export default function GenericTable<T>({
                     </td>
                   )}
 
-                  {columns.map((col) => (
+                  {filteredColumns.map((col) => (
                     <td
                       key={col.id}
                       data-label={

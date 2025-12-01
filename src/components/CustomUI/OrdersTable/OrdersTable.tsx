@@ -1,12 +1,13 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/* src/components/order/OrdersTable/OrdersTable.tsx */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { ChangeEvent } from "react";
 import type { Order } from "../../../types/Order";
 import CustomTable from "../../CustomUI/CustomTable/CustomTable";
 import type { Column } from "../../../types/TableColumn";
 import "./orderstable.css";
+import { useAuth } from "../../../context/AuthContext";
+import { FaEdit, FaTrash, FaEye, FaTimes, FaCheck } from "react-icons/fa";
+
 export interface OrdersTableProps {
   orders: Order[];
   loading: boolean;
@@ -26,7 +27,6 @@ export interface OrdersTableProps {
   onSelectionChange?: (selected: Array<string | number>) => void;
   onRowClick?: (row: Order, idx: number) => void;
   onSearch?: (q: string) => void;
-  onCreate?: () => void;
   onRefresh?: () => void;
 }
 
@@ -42,12 +42,10 @@ export default function OrdersTable({
   onDelete,
   onCancel,
   onFulfill,
-  onViewPayment,
   onViewDetails,
   onSelectionChange,
   onRowClick,
   onSearch,
-  onCreate,
   onRefresh,
 }: OrdersTableProps) {
   // local page state for CustomTable (1-based)
@@ -84,116 +82,142 @@ export default function OrdersTable({
   }, [searchTyping]);
 
   // build columns for CustomTable
-  const columns: Column<Order>[] = [
-    {
-      id: "id",
-      header: "Order",
-      render: (o: Order) => (
-        <div style={{ display: "flex", flexDirection: "column" }}>
-          <div style={{ fontWeight: 700 }}>{o.orderNumber}</div>
-          <div style={{ color: "#6b7280", fontSize: 12 }}>#{o.id}</div>
-        </div>
-      ),
-      width: "220px",
-    },
-    {
-      id: "date",
-      header: "Date",
-      accessor: (o: Order) => o.date,
-      type: "date",
-      width: "180px",
-    },
-    {
-      id: "customer",
-      header: "Customer",
-      render: (o: Order) => (
-        <div style={{ display: "flex", flexDirection: "column" }}>
-          <div style={{ fontWeight: 600 }}>{o.customerName ?? "—"}</div>
-          <div style={{ color: "#6b7280", fontSize: 13 }}>
-            {o.customerEmail ?? "—"}
-          </div>
-        </div>
-      ),
-      width: "260px",
-    },
-    {
-      id: "total",
-      header: "Total",
-      render: (o: Order) => (
-        <div style={{ fontWeight: 700 }}>
-          {o.currency} {Number(o.total || 0).toFixed(2)}
-        </div>
-      ),
-      width: "120px",
-      align: "right",
-    },
-    {
-      id: "status",
-      header: "Status",
-      accessor: (o: Order) => o.status,
-      type: "status",
-      width: "140px",
-      align: "center",
-    },
-    {
-      id: "actions",
-      header: "Actions",
-      type: "buttons",
-      options: [
-        {
-          key: "details",
-          label: "Details",
-          variant: "primary",
-          onClick: (o: Order) => {
-            if (onViewDetails) onViewDetails(o);
-          },
-        },
-        {
-          key: "payment",
-          label: "Payment",
-          variant: "default",
-          onClick: (o: Order) => {
-            if (onViewPayment) onViewPayment(o);
-          },
-        },
-        {
-          key: "edit",
-          label: "Edit",
-          variant: "default",
-          onClick: (o: Order) => {
-            if (onEdit) onEdit(o);
-          },
-        },
-        {
-          key: "cancel",
-          label: "Cancel",
-          variant: "danger",
-          onClick: (o: Order) => {
-            if (onCancel) onCancel(o);
-          },
-        },
-        {
-          key: "fulfill",
-          label: "Fulfill",
-          variant: "default",
-          onClick: (o: Order) => {
-            if (onFulfill) onFulfill(o);
-          },
-        },
-        {
-          key: "delete",
-          label: "Delete",
-          variant: "danger",
-          onClick: (o: Order) => {
-            if (onDelete) onDelete(o);
-          },
-        },
-      ],
-      width: "150px",
-      align: "center",
-    },
-  ];
+  const { can } = useAuth();
 
+  // compute actions once (memoized)
+  const actions = useMemo(() => {
+    const a: {
+      key: string;
+      label: string;
+      variant: "primary" | "default" | "danger" | "ghost";
+      onClick: (o: Order) => void;
+      icon?: React.ReactNode;
+    }[] = [];
+
+    if (can("orders:read")) {
+      a.push({
+        key: "details",
+        label: "Details",
+        variant: "default",
+        onClick: (o: Order) => {
+          if (onViewDetails) onViewDetails(o);
+        },
+        icon: <FaEye />,
+      });
+    }
+    if (can("orders:update")) {
+      a.push({
+        key: "edit",
+        label: "Edit",
+        variant: "default",
+        onClick: (o: Order) => {
+          if (onEdit) onEdit(o);
+        },
+        icon: <FaEdit />,
+      });
+    }
+    if (can("orders:fulfill")) {
+      a.push({
+        key: "fulfill",
+        label: "Fulfill",
+        variant: "default",
+        onClick: (o: Order) => {
+          if (onFulfill) onFulfill(o);
+        },
+        icon: <FaCheck />,
+      });
+    }
+    if (can("orders:cancel")) {
+      a.push({
+        key: "cancel",
+        label: "Cancel",
+        variant: "danger",
+        onClick: (o: Order) => {
+          if (onCancel) onCancel(o);
+        },
+        icon: <FaTimes />,
+      });
+    }
+    if (can("orders:delete")) {
+      a.push({
+        key: "delete",
+        label: "Delete",
+        variant: "danger",
+        onClick: (o: Order) => {
+          if (onDelete) onDelete(o);
+        },
+        icon: <FaTrash />,
+      });
+    }
+
+    return a;
+    // include handler references so memo updates when handlers change
+  }, [can, onViewDetails, onEdit, onFulfill, onCancel, onDelete]);
+
+  // build columns for CustomTable (memoized so we don't recreate on every render)
+  const columns: Column<Order>[] = useMemo(
+    () => [
+      {
+        id: "id",
+        header: "Order",
+        render: (o: Order) => (
+          <div style={{ display: "flex", flexDirection: "column" }}>
+            <div style={{ fontWeight: 700 }}>{o.orderNumber}</div>
+            <div style={{ color: "#6b7280", fontSize: 12 }}>#{o.id}</div>
+          </div>
+        ),
+        width: "220px",
+      },
+      {
+        id: "date",
+        header: "Date",
+        accessor: (o: Order) => o.date,
+        type: "date",
+        width: "180px",
+      },
+      {
+        id: "customerName",
+        header: "Customer",
+        render: (o: Order) => (
+          <div style={{ display: "flex", flexDirection: "column" }}>
+            <div style={{ fontWeight: 600 }}>{o.customerName ?? "—"}</div>
+            <div style={{ color: "#6b7280", fontSize: 13 }}>
+              {o.customerEmail ?? "—"}
+            </div>
+          </div>
+        ),
+        width: "260px",
+      },
+      {
+        id: "total",
+        header: "Total",
+        render: (o: Order) => (
+          <div style={{ fontWeight: 700 }}>
+            {o.currency} {Number(o.total || 0).toFixed(2)}
+          </div>
+        ),
+        width: "120px",
+        align: "right",
+      },
+      {
+        id: "status",
+        header: "Status",
+        accessor: (o: Order) => o.status,
+        type: "status",
+        width: "140px",
+        align: "center",
+      },
+      {
+        id: "actions",
+        header: "Actions",
+        type: "buttons",
+        options: actions, // <- use the memoized actions here
+        width: "150px",
+        align: "center",
+      },
+    ],
+    [actions]
+  );
   // bridge CustomTable page change (1-based) -> parent (0-based)
   const handleInternalPageChange = (newPage: number, newPageSize: number) => {
     setLocalPage(newPage);
@@ -213,10 +237,6 @@ export default function OrdersTable({
       } as unknown as ChangeEvent<HTMLSelectElement>;
       onRowsPerPageChange(syntheticEvent);
     }
-  };
-
-  const handleCreateClick = () => {
-    if (onCreate) onCreate();
   };
 
   const handleRefresh = () => {
@@ -271,13 +291,6 @@ export default function OrdersTable({
               onClick={handleRefresh}
             >
               Refresh
-            </button>
-            <button
-              type="button"
-              className="btn btn-primary"
-              onClick={handleCreateClick}
-            >
-              + Add order
             </button>
           </div>
         </div>

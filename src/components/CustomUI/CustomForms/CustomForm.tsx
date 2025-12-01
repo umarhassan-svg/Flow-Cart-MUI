@@ -31,15 +31,21 @@ export type Schema = {
 };
 
 type Props = {
+  title?: string;
+  subtitle?: string;
   schema?: Schema; // optional so component won't crash if parent forgets to pass it
   onSubmit?: (formData: Record<string, any>) => void;
   submitLabel?: string;
+  maxWidth?: number | string;
 };
 
 export default function CustomForm({
+  title,
+  subtitle,
   schema = { fields: [] },
   onSubmit,
   submitLabel = "Submit",
+  maxWidth,
 }: Props) {
   // --- compute initial values as an object (useMemo) ---
   const initialValues = useMemo(() => {
@@ -229,6 +235,13 @@ export default function CustomForm({
       case "TEXT_FIELD":
       case "INPUT":
       default:
+        if (field.type === "sub-header") {
+          return (
+            <div className="cf-sub-header">
+              <strong>{field.label}</strong>
+            </div>
+          );
+        }
         if (field.type === "textarea") {
           return (
             <textarea
@@ -362,43 +375,60 @@ export default function CustomForm({
   }
 
   return (
-    <div className="cf-container">
-      <form className="cf-form" onSubmit={handleSubmit} noValidate>
-        {schema.fields.map((field) => (
-          <div
-            key={field.name}
-            className={`cf-field ${field.hidden ? "cf-hidden" : ""}`}
-          >
-            {!field.hidden && field.label && field.component !== "CHECKBOX" && (
-              <label
-                htmlFor={field.name}
-                id={`${field.name}-label`}
-                className="cf-label"
-              >
-                {field.label}
-                {field.isRequired ? (
-                  <span className="cf-required">*</span>
-                ) : null}
-              </label>
-            )}
-
-            {renderField(field)}
-
-            {errors[field.name] && (
-              <div className="cf-error">{errors[field.name]}</div>
-            )}
-            {field.component === "CHECKBOX" && field.label && (
-              <div className="cf-help" />
-            )}
-          </div>
-        ))}
-
-        <div className="cf-actions">
-          <button type="submit" className="cf-primary">
-            {submitLabel}
-          </button>
+    <>
+      {(title || subtitle) && (
+        <div className="cf-header" style={maxWidth ? { maxWidth } : undefined}>
+          {title && <h2 className="cf-title">{title}</h2>}
+          {subtitle && <p className="cf-description">{subtitle}</p>}
         </div>
-      </form>
-    </div>
+      )}
+
+      <div className="cf-container">
+        <form
+          className="cf-form"
+          onSubmit={handleSubmit}
+          noValidate
+          style={maxWidth ? { maxWidth } : undefined}
+        >
+          {schema.fields.map((field) => (
+            <div
+              key={field.name}
+              className={`cf-field ${field.hidden ? "cf-hidden" : ""}`}
+            >
+              {!field.hidden &&
+                field.label &&
+                field.component !== "CHECKBOX" &&
+                field.type !== "sub-header" && (
+                  <label
+                    htmlFor={field.name}
+                    id={`${field.name}-label`}
+                    className="cf-label"
+                  >
+                    {field.label}
+                    {field.isRequired ? (
+                      <span className="cf-required">*</span>
+                    ) : null}
+                  </label>
+                )}
+
+              {renderField(field)}
+
+              {errors[field.name] && (
+                <div className="cf-error">{errors[field.name]}</div>
+              )}
+              {field.component === "CHECKBOX" && field.label && (
+                <div className="cf-help" />
+              )}
+            </div>
+          ))}
+
+          <div className="cf-actions">
+            <button type="submit" className="cf-primary">
+              {submitLabel}
+            </button>
+          </div>
+        </form>
+      </div>
+    </>
   );
 }

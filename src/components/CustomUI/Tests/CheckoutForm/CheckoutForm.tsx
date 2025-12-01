@@ -1,6 +1,7 @@
 // Example usage in a parent
 import CustomForm from "../../CustomForms/CustomForm";
 import type { Schema } from "../../CustomForms/CustomForm";
+// import { checkoutSchema } from "./checkoutSchema";
 
 const CheckoutForm = () => {
   // Paste this where you build the schema in your parent component
@@ -237,59 +238,6 @@ const CheckoutForm = () => {
       },
     ],
   };
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  //   const schema3: Schema = {
-  //     fields: [
-  //       {
-  //         component: "TEXT_FIELD",
-  //         name: "name",
-  //         label: "Your name",
-  //         isRequired: true,
-  //         validate: ["REQUIRED"],
-  //         type: "text",
-  //         placeholder: "Jane Doe",
-  //       },
-  //       {
-  //         component: "TEXT_FIELD",
-  //         name: "email",
-  //         label: "Email",
-  //         isRequired: true,
-  //         validate: [
-  //           "REQUIRED",
-  //           {
-  //             type: "PATTERN",
-  //             pattern: "^[a-z0-9._%+-]+@[a-z0-9.-]+\\.[a-z]{2,}$",
-  //             message: "Not a valid email",
-  //           },
-  //         ],
-  //         type: "email",
-  //         placeholder: "you@example.com",
-  //       },
-  //       {
-  //         component: "RADIO_BUTTON",
-  //         name: "gender",
-  //         label: "Gender",
-  //         options: ["Male", "Female", "Other"],
-  //         validate: ["RADIO_REQUIRED"],
-  //       },
-  //       {
-  //         component: "CHECKBOX",
-  //         name: "agree",
-  //         label: "I agree to terms",
-  //         isRequired: true,
-  //         validate: ["REQUIRED"],
-  //       },
-  //       {
-  //         component: "TEXT_FIELD",
-  //         name: "resume",
-  //         label: "Resume",
-  //         type: "file",
-  //         accept: ".pdf,.doc,.docx",
-  //         multiple: false,
-  //       },
-  //     ],
-  //   };
 
   return (
     <>

@@ -1,0 +1,80 @@
+:root {
+    --nt-bg: #ffffff;
+    --nt-shadow: 0 8px 30px rgba(12, 15, 20, 0.08);
+    --nt-radius: 12px;
+    --nt-gap: 12px;
+
+    /* variant colors */
+    --success-bg: #ecfdf3;
+    --success-text: #065f46;
+
+    --active-bg: #f0fdf9;
+    --active-text: #065f46;
+
+    --pending-bg: #fffbeb;
+    --pending-text: #92400e;
+
+    --danger-bg: #fff7f7;
+    --danger-text: #991b1b;
+
+    --inactive-bg: #fbfdff;
+    --inactive-text: #475569;
+
+    --default-bg: #f1f8ff;
+    --default-text: #0f172a;
+
+    --unknown-bg: #fbf8ff;
+    --unknown-text: #3f3d56;
+}
+
+/* container */
+.nt-container {
+    position: fixed;
+    z-index: 9999;
+    pointer-events: none;
+    display: flex;
+    flex-direction: column;
+    gap: var(--nt-gap);
+    padding: 12px;
+    width: auto;
+    max-width: calc(100% - 32px);
+}
+
+/* placement options */
+.nt-top-right {
+    top: 12px;
+    right: 12px;
+    align-items: flex-end;
+}
+
+.nt-top-left {
+    top: 12px;
+    left: 12px;
+    align-items: flex-start;
+}
+
+.nt-bottom-right {
+    bottom: 12px;
+    right: 12px;
+    align-items: flex-end;
+}
+
+.nt-bottom-left {
+    bottom: 12px;
+    left: 12px;
+    align-items: flex-start;
+}
+
+.nt-top-center {
+    top: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    align-items: center;
+}
+
+.nt-bottom-center {
+    bottom: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    align-items: center;
+}

@@ -10,6 +10,8 @@
     --primary: #3b82f6;
     --primary-hover: #2563eb;
     --surface: #f8fafc;
+    --background : #f1f5f9;
+    --hover: #b4d5f8;
     margin: 0 auto;
 }
 
@@ -295,7 +297,7 @@
 .pg-btn.active,
 .pg-btn.page-number.active {
     background: var(--primary);
-    color: white;
+    color : black;
     border-color: var(--primary);
 }
 
@@ -369,6 +371,55 @@
     z-index: 100;
     animation: fadeIn 0.2s ease;
 }
+.chip-dialog-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+}
+
+/* Modern circular close icon */
+.chip-dialog-close {
+    width: 32px;
+    height: 32px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background: #f1f5f9;
+    /* soft slate */
+    border: none;
+    border-radius: 50%;
+    /* <-- circle */
+    cursor: pointer;
+
+    color: #64748b;
+    /* gray icon */
+    font-size: 18px;
+    /* icon size */
+
+    transition: all 0.15s ease;
+}
+
+.chip-dialog-close:hover {
+    background: #e2e8f0;
+    /* hover */
+    color: #334155;
+    /* darker icon */
+    transform: scale(1.05);
+}
+
+.chip-dialog-close:active {
+    transform: scale(0.92);
+}
+
+.chip-dialog-close svg {
+    width: 20px;
+    height: 20px;
+}
+
 
 @keyframes fadeIn {
     from {
@@ -446,19 +497,19 @@
 .menu-root {
     position: relative;
     display: inline-block;
+    z-index: 1;
 }
 
 .menu-trigger {
     background: transparent;
     border: none;
-    padding: 8px;
     cursor: pointer;
     border-radius: 6px;
     transition: background 0.15s ease;
 }
 
 .menu-trigger:hover {
-    background: var(--surface);
+    background: var(--hover);
 }
 
 .menu-popover {
@@ -478,20 +529,37 @@
 }
 
 .menu-item {
-    padding: 10px 14px;
-    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 8px;
+    padding: 8px ;
+    width: 100%;
+    font-size: 14px;
+    color: #333;
+    border-radius: 10px;
     background: transparent;
     border: none;
-    text-align: left;
     cursor: pointer;
-    font-size: 14px;
-    color: #334155;
-    font-weight: 500;
+    text-align: left;
     transition: background 0.15s ease;
 }
 
 .menu-item:hover {
-    background: var(--surface);
+    background: var(--hover);
+}
+
+.menu-item-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    color: #555;
+}
+
+.menu-item-label {
+    flex: 1;
 }
 
 .menu-item-primary {
@@ -499,50 +567,80 @@
     color: white;
 }
 
-.menu-item-primary:hover {
-    background: var(--primary-hover);
-}
+
 
 .menu-item-danger {
     color: #dc2626;
 }
 
-.menu-item-danger:hover {
-    background: #fef2f2;
-}
+
+
 
 /* status badges - vibrant colors */
+/* Base badge style */
 .status-badge {
-    padding: 6px 12px;
-    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 5px 12px;
+    border-radius: 999px;
+    /* pill shape */
     font-size: 13px;
     font-weight: 600;
-    display: inline-block;
+    line-height: 1;
+    text-transform: capitalize;
+    /* human readable */
+    min-height: 32px;
+    box-sizing: border-box;
+    transition: background 0.15s ease, color 0.15s ease;
 }
 
+/* SUCCESS — fulfilled / shipped */
+.status-success {
+    background-color: #d1fae5;
+    color: #065f46;
+}
+
+/* ACTIVE — active / enabled / confirmed */
 .status-active {
-    background: #dcfce7;
-    color: #15803d;
+    background-color: #dcfce7;
+    color: #065f46;
 }
 
+/* PENDING — processing / pending */
 .status-pending {
-    background: #fef3c7;
-    color: #b45309;
+    background-color: #fef3c7;
+    color: #78350f;
 }
 
+/* DANGER — error / cancelled */
 .status-danger {
-    background: #fee2e2;
-    color: #dc2626;
+    background-color: #fee2e2;
+    color: #991b1b;
 }
 
+/* INACTIVE — inactive / disabled */
 .status-inactive {
-    background: #f1f5f9;
-    color: #64748b;
+    background-color: #f1f5f9;
+    color: #475569;
 }
 
+/* DEFAULT — draft / default */
 .status-default {
-    background: #eff6ff;
-    color: #2563eb;
+    background-color: #eff6ff;
+    color: #1e40af;
+}
+
+/* UNKNOWN — unmapped / unknown status */
+.status-unknown {
+    background-color: #f3e8ff;
+    color: #6b21a8;
+}
+
+/* DRAFT — optional human-readable draft */
+.status-draft {
+    background-color: #f8fafc;
+    color: #334155;
 }
 
 /* --------------------------- RESPONSIVE CARD LAYOUT --------------------------- */
@@ -623,6 +721,7 @@
     .generic-table tbody td.col-actions::before {
         content: "";
         display: none;
+        
     }
 
     .generic-table tbody td.col-actions {

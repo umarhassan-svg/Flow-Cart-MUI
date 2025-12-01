@@ -1,12 +1,14 @@
 /* src/components/admin/RolesTable/RolesTable.tsx */
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { ChangeEvent } from "react";
 import type { Role } from "../../../types/Roles";
 import CustomTable from "../CustomTable/CustomTable";
 import type { Column } from "../../../types/TableColumn";
 import { useNavigate } from "react-router-dom";
 import "./rolestable.css";
+import { useAuth } from "../../../context/AuthContext";
+import { FaEdit, FaTrash } from "react-icons/fa";
 
 export interface RolesTableProps {
   roles: Role[];
@@ -83,59 +85,78 @@ export default function RolesTable({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchTyping]);
 
+  const { can } = useAuth();
+
+  const actions = useMemo(() => {
+    const a: {
+      key: string;
+      label: string;
+      variant: "primary" | "default" | "danger" | "ghost";
+      onClick: (o: Role) => void;
+      icon?: React.ReactNode;
+    }[] = [];
+    if (can("roles:create")) {
+      a.push({
+        key: "edit",
+        label: "Edit",
+        variant: "default",
+        onClick: (r: Role) => {
+          if (onEdit) onEdit(r);
+          else navigate(`/admin/roles/${r.id}/edit`);
+        },
+        icon: <FaEdit />,
+      });
+    }
+    if (can("roles:delete")) {
+      a.push({
+        key: "delete",
+        label: "Delete",
+        variant: "danger",
+        onClick: (r: Role) => {
+          if (onDelete) onDelete(r);
+          else navigate(`/admin/roles/${r.id}/delete`);
+        },
+        icon: <FaTrash />,
+      });
+    }
+    return a;
+  }, [can, onEdit, onDelete, navigate]);
   // Build columns for roles
-  const columns: Column<Role>[] = [
-    {
-      id: "name",
-      header: "Role",
-      accessor: (r: Role) => r.name,
-      render: (r: Role) => <strong style={{ fontSize: 14 }}>{r.name}</strong>,
-      width: "260px",
-    },
-    {
-      id: "pages",
-      header: "Pages",
-      accessor: (r: Role) => r.pages,
-      type: "chips",
-      width: "300px",
-    },
-    {
-      id: "permissions",
-      header: "Permissions",
-      accessor: (r: Role) => r.permissions ?? [],
-      type: "chips",
-      width: "300px",
-    },
-    {
-      id: "actions",
-      header: "Actions",
-      type: "buttons",
-      options: [
-        {
-          key: "edit",
-          label: "Edit",
-          variant: "primary",
-          onClick: (r: Role) => {
-            if (onEdit) onEdit(r);
-            else navigate(`/admin/roles/${r.id}/edit`);
-          },
-        },
-        {
-          key: "delete",
-          label: "Delete",
-          variant: "danger",
-          onClick: (r: Role) => {
-            if (onDelete) onDelete(r);
-            else {
-              // fallback no-op
-            }
-          },
-        },
-      ],
-      width: "160px",
-      align: "center",
-    },
-  ];
+  const columns: Column<Role>[] = useMemo(
+    () => [
+      {
+        id: "name",
+        header: "Role",
+        accessor: (r: Role) => r.name,
+        render: (r: Role) => <strong style={{ fontSize: 14 }}>{r.name}</strong>,
+        width: "260px",
+      },
+      {
+        id: "pages",
+        header: "Pages",
+        accessor: (r: Role) => r.pages,
+        type: "chips",
+        width: "300px",
+      },
+      {
+        id: "permissions",
+        header: "Permissions",
+        accessor: (r: Role) => r.permissions ?? [],
+        type: "chips",
+        width: "300px",
+      },
+      {
+        id: "actions",
+        header: "Actions",
+        type: "buttons",
+        options: actions,
+
+        width: "160px",
+        align: "center",
+      },
+    ],
+    [actions]
+  );
 
   // Handler bridging CustomTable's onPageChange (1-based) -> parent (0-based)
   const handleInternalPageChange = (newPage: number, newPageSize: number) => {
@@ -220,14 +241,16 @@ export default function RolesTable({
               Refresh
             </button>
 
-            <button
-              type="button"
-              className="btn btn-primary"
-              onClick={handleCreateClick}
-              aria-label="Add role"
-            >
-              + Add role
-            </button>
+            {can("roles:create") && (
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={handleCreateClick}
+                aria-label="Add user"
+              >
+                + Add user
+              </button>
+            )}
           </div>
         </div>
       </div>

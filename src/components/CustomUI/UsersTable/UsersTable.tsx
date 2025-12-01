@@ -1,6 +1,6 @@
 /* src/components/admin/UsersTable/UsersTable.tsx */
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { ChangeEvent } from "react";
 import type { User } from "../../../types/User";
 import CustomTable from "../CustomTable/CustomTable";
@@ -8,6 +8,8 @@ import type { Column } from "../../../types/TableColumn";
 import { Avatar_C } from "../../../utils/helperUserTable";
 import { useNavigate } from "react-router-dom";
 import "./usertable.css";
+import { useAuth } from "../../../context/AuthContext";
+import { FaEdit, FaTrash } from "react-icons/fa";
 export interface UsersTableProps {
   users: User[];
   loading: boolean;
@@ -85,67 +87,88 @@ export default function UsersTable({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchTyping]);
 
+  const { can } = useAuth();
+
+  const actions = useMemo(() => {
+    const a: {
+      key: string;
+      label: string;
+      variant: "primary" | "default" | "danger" | "ghost";
+      onClick: (o: User) => void;
+      icon?: React.ReactNode;
+    }[] = [];
+    if (can("users:create")) {
+      a.push({
+        key: "edit",
+        label: "Edit",
+        variant: "default",
+        onClick: (r: User) => {
+          if (onEdit) onEdit(r);
+          else navigate(`/admin/roles/${r.id}/edit`);
+        },
+        icon: <FaEdit />,
+      });
+    }
+    if (can("roles:delete")) {
+      a.push({
+        key: "delete",
+        label: "Delete",
+        variant: "danger",
+        onClick: (r: User) => {
+          if (onDelete) onDelete(r);
+          else navigate(`/admin/roles/${r.id}/delete`);
+        },
+        icon: <FaTrash />,
+      });
+    }
+    return a;
+  }, [can, onEdit, onDelete, navigate]);
+
   // Build columns and wire up edit/delete handlers via props
-  const columns: Column<User>[] = [
-    {
-      id: "profile",
-      header: "User",
-      render: (u: User) => (
-        <Avatar_C src={u.profilePicturePath} name={u.name} />
-      ),
-      width: "280px",
-    },
-    {
-      id: "email",
-      header: "Email",
-      accessor: (u: User) => u.email,
-      width: "260px",
-      render: (u: User) => (
-        <span style={{ color: "#6b7280", fontSize: 14 }}>{u.email}</span>
-      ),
-    },
-    {
-      id: "roles",
-      header: "Roles",
-      accessor: (u: User) => u.roles,
-      type: "chips",
-      width: "220px",
-    },
-    {
-      id: "permissions",
-      header: "Permissions",
-      accessor: (u: User) => u.effectivePermissions,
-      type: "chips",
-      width: "200px",
-    },
-    {
-      id: "actions",
-      header: "Actions",
-      type: "buttons",
-      options: [
-        {
-          key: "edit",
-          label: "Edit",
-          variant: "primary",
-          onClick: (u: User) => {
-            if (onEdit) onEdit(u);
-            else console.log("Edit user:", u);
-          },
-        },
-        {
-          key: "delete",
-          label: "Delete",
-          variant: "danger",
-          onClick: (u: User) => {
-            if (onDelete) onDelete(u);
-            else console.log("Delete user:", u);
-          },
-        },
-      ],
-      width: "160px",
-      align: "center",
-    },
-  ];
+  const columns: Column<User>[] = useMemo(
+    () => [
+      {
+        id: "name",
+        header: "User",
+        render: (u: User) => (
+          <Avatar_C src={u.profilePicturePath} name={u.name} />
+        ),
+        width: "280px",
+      },
+      {
+        id: "email",
+        header: "Email",
+        accessor: (u: User) => u.email,
+        width: "260px",
+        render: (u: User) => (
+          <span style={{ color: "#6b7280", fontSize: 14 }}>{u.email}</span>
+        ),
+      },
+      {
+        id: "roles",
+        header: "Roles",
+        accessor: (u: User) => u.roles,
+        type: "chips",
+        width: "220px",
+      },
+      {
+        id: "permissions",
+        header: "Permissions",
+        accessor: (u: User) => u.effectivePermissions,
+        type: "chips",
+        width: "200px",
+      },
+      {
+        id: "actions",
+        header: "Actions",
+        type: "buttons",
+        options: actions,
+        width: "160px",
+        align: "center",
+      },
+    ],
+    [actions]
+  );
 
   // Handler bridging CustomTable's onPageChange (1-based) -> parent (0-based)
   const handleInternalPageChange = (newPage: number, newPageSize: number) => {
@@ -229,15 +252,16 @@ export default function UsersTable({
             >
               Refresh
             </button>
-
-            <button
-              type="button"
-              className="btn btn-primary"
-              onClick={handleCreateClick}
-              aria-label="Add user"
-            >
-              + Add user
-            </button>
+            {can("users:create") && (
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={handleCreateClick}
+                aria-label="Add user"
+              >
+                + Add user
+              </button>
+            )}
           </div>
         </div>
       </div>

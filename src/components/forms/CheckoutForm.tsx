@@ -2,18 +2,14 @@
 import { useState } from "react";
 import { useCart } from "../../context/CartContext";
 import CustomDialogbox from "../ui/CustomDialogbox";
-import CustomForm, { type Field } from "../ui/CustomForm";
+import CustomForm from "../CustomUI/CustomForms/CustomForm";
+import { checkoutSchema } from "../CustomUI/Tests/CheckoutForm/checkoutSchema"; // <-- import schema
 import {
   createOrderFromCheckout,
   type CheckoutPayload,
 } from "../../utils/createOrder";
 import { useAuth } from "../../context/AuthContext";
 
-const COUNTRIES = [
-  { code: "US", name: "United States" },
-  { code: "CA", name: "Canada" },
-  { code: "GB", name: "United Kingdom" },
-];
 const formatCurrency = (amount: number, currency = "USD") =>
   new Intl.NumberFormat(undefined, { style: "currency", currency }).format(
     amount ?? 0
@@ -25,76 +21,7 @@ const CheckoutForm = () => {
   const [dialogMessage, setDialogMessage] = useState("");
   const { user } = useAuth();
 
-  // Updated Fields with Sections
-  const fields: Field[] = [
-    // --- Section 1: Contact ---
-    {
-      name: "sec_contact",
-      label: "Contact Information",
-      type: "header", // NEW
-    },
-    {
-      name: "email",
-      label: "Email Address",
-      type: "email",
-      required: true,
-      width: 12,
-    }, // Full width email
-    { name: "fullName", label: "Full Name", required: true, width: 12 },
-
-    // --- Section 2: Shipping ---
-    {
-      name: "sec_shipping",
-      label: "Shipping Address",
-      type: "header", // NEW
-    },
-    { name: "address1", label: "Address Line 1", required: true, width: 12 },
-    {
-      name: "address2",
-      label: "Address Line 2 (Optional)",
-      type: "text",
-      width: 12,
-    },
-    { name: "city", label: "City", required: true, width: 6 },
-    { name: "zipCode", label: "ZIP / Postal Code", required: true, width: 6 },
-    {
-      name: "country",
-      label: "Country",
-      type: "select",
-      options: COUNTRIES.map((c) => ({ value: c.code, label: c.name })),
-      required: true,
-      width: 12,
-    },
-
-    // --- Section 3: Payment ---
-    {
-      name: "sec_payment",
-      label: "Payment Details",
-      type: "header", // NEW
-    },
-    {
-      name: "paymentMethod",
-      label: "Payment Method",
-      type: "select",
-      options: [
-        { value: "card", label: "Credit / Debit Card" },
-        { value: "paypal", label: "PayPal" },
-      ],
-      required: true,
-      width: 12,
-    },
-    // Card fields (visual grouping 12, 6, 6)
-    { name: "cardNumber", label: "Card Number", required: true, width: 12 },
-    { name: "expiry", label: "Expiry (MM/YY)", required: true, width: 6 },
-    { name: "cvc", label: "CVC / CVV", required: true, width: 6 },
-  ];
-
-  // Initial values
-  const initialValues = {
-    email: user?.email ?? "",
-    country: "US",
-    paymentMethod: "card",
-  };
+  // Initial values can override schema defaults
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async function handleSubmit(values: Record<string, any>) {
@@ -151,12 +78,10 @@ const CheckoutForm = () => {
   return (
     <>
       <CustomForm
-        title="Secure Checkout"
-        fields={fields}
-        initialValues={initialValues}
+        title="Checkout Form"
+        schema={checkoutSchema} // <-- use schema
         onSubmit={handleSubmit}
         submitLabel={`Pay ${formatCurrency(totals.total)}`}
-        maxWidth={700}
       />
 
       {openDialog && (

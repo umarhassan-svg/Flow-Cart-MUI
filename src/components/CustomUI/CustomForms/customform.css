@@ -15,7 +15,7 @@
 
 .cf-container {
     background: linear-gradient(180deg, var(--bg), #ffffff);
-    padding: 28px;
+    padding: 2px;
     display: flex;
     justify-content: center;
     align-items: flex-start;
@@ -41,7 +41,8 @@
 
 /* label */
 .cf-label {
-    font-size: 13px;
+    font-size: 12px;
+    margin-left: 10px;
     color: #111827;
     font-weight: 600;
     display: flex;
@@ -239,4 +240,49 @@
     .cf-primary {
         width: 100%;
     }
+}
+
+/* Form top header (title + subtitle) */
+.cf-header {
+    max-width: 820px;
+    margin: 0;
+    padding: 8px 18px;
+    text-align: left;
+        font-family: Arial, Helvetica, sans-serif;
+}
+
+.cf-sub-header{
+    max-width: 820px;
+    margin: 0;
+    text-align: left;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.cf-title {
+    margin: 0 0 6px;
+    font-size: 20px;
+    font-weight: 600;
+    color: #0f172a;
+    letter-spacing: -0.01em;
+    text-align: center;
+}
+
+.cf-description {
+    margin: 0;
+    font-size: 13px;
+    color: #475569;
+    line-height: 1.4;
+}
+
+.cf-section-header {
+    width: 100%;
+    margin: 18px 0 10px;
+    font-size: 14px;
+    font-weight: 700;
+    color: #0f172a;
+    padding: 10px 12px;
+    border-radius: 8px;
+    background: linear-gradient(180deg, rgba(15, 23, 42, 0.02), rgba(15, 23, 42, 0.01));
+    border: 1px solid rgba(15, 23, 42, 0.03);
+    display: block;
 }

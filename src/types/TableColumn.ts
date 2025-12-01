@@ -30,5 +30,6 @@ export type Column<T> = {
     /** optional client-side flag for preventing row click */
     stopPropagation?: boolean;
     variant?: "primary" | "danger" | "ghost" | "default";
+    icon?: React.ReactNode;
   }>;
 };

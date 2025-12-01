@@ -28,6 +28,7 @@ import { useNavigate } from "react-router-dom";
 
 import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
+import { useNotifications } from "../context/NotificationContext";
 
 const sampleBanners: Banner[] = [
   {
@@ -81,6 +82,7 @@ const ProductsListPage = () => {
   const navigate = useNavigate();
   const { addToCart } = useCart();
   const { can } = useAuth();
+  const { success } = useNotifications();
 
   // Debounce Effect
   useEffect(() => {
@@ -159,6 +161,7 @@ const ProductsListPage = () => {
 
   const handleAddToCart = (p: Product) => {
     addToCart(p);
+    success("Item added to cart");
   };
 
   const canLoadMore = products.length < total;

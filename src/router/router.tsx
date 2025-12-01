@@ -28,6 +28,7 @@ import { SessionProvider } from "../context/SessionContext";
 import { CartProvider } from "../context/CartContext";
 import UsersTable from "../pages/UserManagement2/UserManagement2";
 import TCustomForm from "../pages/TCustomForm";
+import { NotificationProvider } from "../context/NotificationContext";
 /**
  * Routes:
  * - /admin/users           -> list (requires users:read)
@@ -53,7 +54,9 @@ const router = createBrowserRouter([
         <SessionProvider>
           <CartProvider>
             <NavProvider>
-              <PrivateRoute />
+              <NotificationProvider>
+                <PrivateRoute />
+              </NotificationProvider>
             </NavProvider>
           </CartProvider>
         </SessionProvider>

@@ -107,6 +107,9 @@ export function exportTableCSV<T>(
   rows: T[],
   filename?: string
 ): void {
+  if ("actions" === columns[columns.length - 1].id) {
+    columns.pop();
+  }
   const prepared = prepareDataForCSV(columns, rows);
   const finalName = filename ?? `export-${new Date().toISOString()}.csv`;
   exportToCSV(prepared, finalName);
