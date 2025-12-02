@@ -14,7 +14,6 @@ import {
   clearSession,
   saveSession,
   getToken,
-  getCurrentUser,
 } from "../utils/ServicesHelpers/AuthHelpers";
 
 type AuthContextType = {
@@ -43,10 +42,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       // console.log(" Auth init started");
 
       const token = getToken();
-      const cachedUser = getCurrentUser();
 
       // console.log(" Token exists:", !!token);
-      console.log(" Cached user exists:", !!cachedUser);
 
       // If no token, we're not authenticated
       if (!token) {
@@ -95,7 +92,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       } finally {
         if (mounted) {
           setLoading(false);
-          console.log(" Auth init completed");
+          // console.log(" Auth init completed");
         }
       }
     };

@@ -1,17 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // src/pages/RolesManagement.tsx
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams, useMatch } from "react-router-dom";
-import {
-  Button,
-  IconButton,
-  Typography,
-  Snackbar,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-} from "@mui/material";
+import { IconButton, Snackbar } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 
 import ManageRole from "../../components/admin/ManageRole/ManageRole";
@@ -21,6 +12,11 @@ import rolesService from "../../services/roles.service";
 import type { Role } from "../../types/Roles";
 import LayoutMain from "../../components/layout/layoutMain";
 import { useAuth } from "../../context/AuthContext";
+import MessageDialogBox from "../../components/CustomUI/MessageDialogBox/MessageDialogBox";
+import type {
+  DialogAction,
+  DialogVariant,
+} from "../../types/MessageDialogBoxTypes";
 
 const RolesManagement = () => {
   const navigate = useNavigate();
@@ -197,6 +193,29 @@ const RolesManagement = () => {
       });
     }
   };
+  const deleteactions: DialogAction[] = useMemo(() => {
+    return [
+      {
+        key: "cancel",
+        label: "Cancel",
+        // MessageDialogBox will call onClose after this action, so this can be a no-op
+        onClick: (e: React.MouseEvent<HTMLButtonElement>) => {
+          /* no-op */
+          e.stopPropagation();
+        },
+        isPrimary: false,
+      },
+      {
+        key: "delete",
+        label: "Delete",
+        onClick: async () => {
+          await handleDelete();
+        },
+
+        isPrimary: true,
+      },
+    ];
+  }, []);
 
   return (
     <LayoutMain>
@@ -230,21 +249,15 @@ const RolesManagement = () => {
       />
 
       {/* Delete confirmation */}
-      {can("roles:delete") && (
-        <Dialog open={deleteOpen} onClose={() => setDeleteOpen(false)}>
-          <DialogTitle>Delete role</DialogTitle>
-          <DialogContent dividers>
-            <Typography>
-              Are you sure you want to delete <strong>{toDelete?.name}</strong>?
-            </Typography>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setDeleteOpen(false)}>Cancel</Button>
-            <Button color="error" variant="contained" onClick={handleDelete}>
-              Delete
-            </Button>
-          </DialogActions>
-        </Dialog>
+      {can("users:delete") && (
+        <MessageDialogBox
+          isOpen={deleteOpen} // local state controls visibility
+          onClose={() => setDeleteOpen(false)}
+          title="Deletion Alert"
+          message="Are you sure you want to proceed with this potentially destructive action? This cannot be undone."
+          actions={deleteactions}
+          variant={"warning" as DialogVariant}
+        />
       )}
 
       <Snackbar

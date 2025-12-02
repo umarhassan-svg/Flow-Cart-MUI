@@ -1,7 +1,6 @@
 // src/components/checkout/CheckoutForm.tsx
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useCart } from "../../context/CartContext";
-import CustomDialogbox from "../ui/CustomDialogbox";
 import CustomForm from "../CustomUI/CustomForms/CustomForm";
 import { checkoutSchema } from "../CustomUI/Tests/CheckoutForm/checkoutSchema"; // <-- import schema
 import {
@@ -9,6 +8,11 @@ import {
   type CheckoutPayload,
 } from "../../utils/createOrder";
 import { useAuth } from "../../context/AuthContext";
+import MessageDialogBox from "../CustomUI/MessageDialogBox/MessageDialogBox";
+import type {
+  DialogAction,
+  DialogVariant,
+} from "../../types/MessageDialogBoxTypes";
 
 const formatCurrency = (amount: number, currency = "USD") =>
   new Intl.NumberFormat(undefined, { style: "currency", currency }).format(
@@ -75,6 +79,21 @@ const CheckoutForm = () => {
     }
   }
 
+  const dialogactions: DialogAction[] = useMemo(() => {
+    return [
+      {
+        key: "close",
+        label: "Close",
+        // MessageDialogBox will call onClose after this action, so this can be a no-op
+        onClick: (e: React.MouseEvent<HTMLButtonElement>) => {
+          /* no-op */
+          e.stopPropagation();
+        },
+        isPrimary: true,
+      },
+    ];
+  }, []);
+
   return (
     <>
       <CustomForm
@@ -85,11 +104,13 @@ const CheckoutForm = () => {
       />
 
       {openDialog && (
-        <CustomDialogbox
-          title="Order Status"
-          open={openDialog}
+        <MessageDialogBox
+          isOpen={openDialog} // local state controls visibility
           onClose={() => setOpenDialog(false)}
+          title="Order Status"
           message={dialogMessage}
+          actions={dialogactions}
+          variant={"success" as DialogVariant}
         />
       )}
     </>

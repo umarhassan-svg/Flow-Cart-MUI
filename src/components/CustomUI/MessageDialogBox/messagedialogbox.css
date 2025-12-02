@@ -1,0 +1,224 @@
+/* --- Variables --- */
+:root {
+    --dialog-primary: #1976D2;
+    --dialog-primary-hover: #769fc7;
+
+    --dialog-success: #2e7d32;
+    --dialog-warning: #ed6c02;
+    --dialog-error: #d32f2f;
+
+    --dialog-text-main: #0f1720;
+    --dialog-text-sub: #6b7280;
+    --dialog-bg: #ffffff;
+    --dialog-radius: 18px;
+    --dialog-backdrop: rgba(2, 6, 23, 0.45);
+}
+
+/* --- Backdrop --- */
+.dialog-backdrop {
+    position: fixed;
+    inset: 0;
+    /* shorthand for top:0;right:0;bottom:0;left:0; */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--dialog-backdrop);
+    backdrop-filter: blur(3px) saturate(110%);
+    z-index: 1300;
+    padding: 24px;
+    animation: dialogBackdropIn .18s ease-out;
+}
+
+/* --- Dialog Box: tall portrait ratio 9:16 --- */
+.dialog-box {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), var(--dialog-bg));
+    border-radius: var(--dialog-radius);
+    box-shadow: 0 20px 50px rgba(2, 6, 23, 0.32);
+    width: min(420px, 92vw);
+    /* keep a vertical rectangle (width / height = 9 / 16) */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    overflow: hidden;
+    padding: 32px 24px;
+    gap: 18px;
+    animation: dialogPop .28s cubic-bezier(.16, 1, .3, 1);
+}
+
+/* Animations */
+@keyframes dialogBackdropIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes dialogPop {
+    from {
+        opacity: 0;
+        transform: translateY(16px) scale(0.98);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* --- Icon on top (big, centered) --- */
+.dialog-icon-wrapper {
+    width: 110px;
+    height: 110px;
+    min-width: 110px;
+    min-height: 110px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0.12));
+    box-shadow: 0 6px 18px rgba(2, 6, 23, 0.12), inset 0 -6px 18px rgba(255, 255, 255, 0.06);
+    border: 2px solid rgba(255, 255, 255, 0.24);
+    color: var(--dialog-primary);
+    /* default color, overridden by variant classes */
+}
+
+/* Icon sizing */
+.dialog-icon-wrapper svg,
+.dialog-icon-wrapper>* {
+    width: 100px;
+    height: 100px;
+    display: block;
+}
+
+/* Slight badge / accent behind icon for depth */
+.dialog-icon-accent {
+    position: absolute;
+    pointer-events: none;
+}
+
+/* --- Title / Message --- */
+.dialog-message-title {
+    margin: 6px 0 4px;
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--dialog-text-main);
+    letter-spacing: -0.02em;
+}
+
+.dialog-message-text {
+    margin: 0;
+    font-size: 0.98rem;
+    color: var(--dialog-text-sub);
+    line-height: 1.45;
+    padding: 0 10px;
+    max-width: 82%;
+    word-wrap: break-word;
+}
+
+/* --- Actions --- */
+.dialog-actions {
+    margin-top: auto;
+    /* push actions to the bottom area */
+    width: 100%;
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    align-items: center;
+    padding-bottom: 8px;
+    /* keep small subtle separation */
+}
+
+/* Buttons: pill / modern */
+.dialog-btn {
+    border: none;
+    cursor: pointer;
+    padding: 12px 20px;
+    border-radius: 999px;
+    font-weight: 600;
+    font-size: 0.98rem;
+    min-width: 120px;
+    transition: transform .12s ease, box-shadow .12s ease;
+    box-shadow: 0 6px 18px rgba(2, 6, 23, 0.06);
+}
+
+.dialog-btn:active {
+    transform: translateY(1px) scale(.998);
+}
+
+/* Primary button */
+.btn-primary {
+    background: var(--dialog-primary);
+    color: #fff;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+}
+.btn-primary:hover {
+    background: var(--dialog-primary-hover);
+
+}
+
+/* Secondary button - subtle */
+.btn-secondary {
+    background: transparent;
+    color: var(--dialog-text-main);
+    border: 1px solid rgba(15, 23, 32, 0.06);
+    backdrop-filter: blur(2px);
+}
+
+/* Responsive tweaks */
+@media (max-width: 420px) {
+    .dialog-box {
+        padding: 20px 18px;
+    }
+
+    .dialog-icon-wrapper {
+        width: 92px;
+        height: 92px;
+    }
+
+    .dialog-icon-wrapper svg {
+        width: 44px;
+        height: 44px;
+    }
+
+    .dialog-message-text {
+        max-width: 92%;
+        font-size: 0.95rem;
+    }
+
+    .dialog-btn {
+        min-width: 110px;
+        padding: 10px 18px;
+    }
+}
+
+/* ========================================= */
+/* COLOR VARIANTS (override the icon color) */
+/* ========================================= */
+.dialog-variant-info .dialog-icon-wrapper {
+    color: var(--dialog-primary);
+    box-shadow: 0 10px 30px rgba(25, 118, 210, 0.12);
+}
+
+.dialog-variant-success .dialog-icon-wrapper {
+    color: var(--dialog-success);
+    box-shadow: 0 10px 30px rgba(46, 125, 50, 0.10);
+}
+
+.dialog-variant-warning .dialog-icon-wrapper {
+    color: var(--dialog-warning);
+    box-shadow: 0 10px 30px rgba(237, 108, 2, 0.10);
+}
+
+.dialog-variant-error .dialog-icon-wrapper {
+    color: var(--dialog-error);
+    box-shadow: 0 10px 30px rgba(211, 47, 47, 0.10);
+}
+
+/* remove focus outline, keep accessible focus ring */
+.dialog-btn:focus {
+    outline: none;
+    box-shadow: 0 0 0 4px rgba(25, 118, 210, 0.12);
+}

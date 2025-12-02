@@ -45,7 +45,7 @@ const CartDrawer = ({ open, onClose }: Props) => {
   const handleCheckout = () => {
     // This should route to checkout page - keep placeholder for now
     // example: navigate("/checkout") from parent
-    console.log("Checkout", totals);
+    // console.log("Checkout", totals);
     navigate("/checkout");
   };
 

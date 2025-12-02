@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* customForm.tsx */
 import React, { useEffect, useMemo, useState } from "react";
@@ -47,7 +48,6 @@ export default function CustomForm({
       setValues(initialValues);
       setErrors({});
       setTouched({});
-      console.log(touched);
     };
     set_values();
   }, [initialValues]);

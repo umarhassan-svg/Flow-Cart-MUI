@@ -32,7 +32,7 @@ export async function handleListResponse<T>(
 ): Promise<T[]> {
   try {
     const response = await apiCall();
-    console.log(response.data.data)
+    // console.log(response.data.data)
     return response.data.data;
   } catch (err) {
     console.error(errorMessage, err);

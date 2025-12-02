@@ -59,7 +59,6 @@ export default function RolesTable({
 
   useEffect(() => {
     setLocalPage(Math.max(1, page + 1));
-    console.log(localPage);
   }, [page]);
 
   useEffect(() => {

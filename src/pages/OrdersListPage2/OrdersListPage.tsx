@@ -1,6 +1,6 @@
 /* src/pages/OrdersListPage.tsx */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useEffect, useState, useMemo, type ChangeEvent } from "react";
+import React, { useEffect, useState, useMemo, type ChangeEvent } from "react";
 import { Alert, Typography } from "@mui/material";
 import type { Order, PaymentInfo } from "../../types/Order";
 import ManageOrder from "../../components/order/ManageOrder/ManageOrder";
@@ -10,6 +10,11 @@ import LayoutMain from "../../components/layout/layoutMain";
 import OrdersTable from "../../components/CustomUI/OrdersTable/OrdersTable";
 import { ordersService } from "../../services/orders.service";
 import { useAuth } from "../../context/AuthContext";
+import MessageDialogBox from "../../components/CustomUI/MessageDialogBox/MessageDialogBox";
+import type {
+  DialogAction,
+  DialogVariant,
+} from "../../types/MessageDialogBoxTypes";
 
 const OrdersListPage = () => {
   const { can, user } = useAuth();
@@ -32,6 +37,10 @@ const OrdersListPage = () => {
   const [detailsOrder, setDetailsOrder] = useState<Order | undefined>(
     undefined
   );
+
+  // Delete dialog state
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [toDelete, setToDelete] = useState<Order | null>(null);
 
   // initial fetch
   useEffect(() => {
@@ -204,6 +213,39 @@ const OrdersListPage = () => {
     setPage(0);
   };
 
+  // Open delete confirmation helper
+  const openDelete = (order: Order) => {
+    setToDelete(order);
+    setDeleteOpen(true);
+  };
+
+  // Delete dialog actions
+  const deleteActions: DialogAction[] = useMemo(() => {
+    return [
+      {
+        key: "cancel",
+        label: "Cancel",
+        // MessageDialogBox will call onClose after this action, so this can be a no-op
+        onClick: (e: React.MouseEvent<HTMLButtonElement>) => {
+          /* no-op */
+          e.stopPropagation();
+        },
+        isPrimary: false,
+      },
+      {
+        key: "delete",
+        label: "Delete",
+        onClick: async (e: React.MouseEvent<HTMLButtonElement>) => {
+          e.stopPropagation();
+          if (!toDelete) return;
+          await handleDelete(toDelete);
+          // MessageDialogBox will call onClose (which clears toDelete) after this
+        },
+        isPrimary: true,
+      },
+    ];
+  }, [toDelete]);
+
   return (
     <LayoutMain>
       {loading && (
@@ -227,7 +269,7 @@ const OrdersListPage = () => {
         onPageChange={handlePageChange}
         onRowsPerPageChange={handleRowsPerPageChange}
         onEdit={(o) => openEdit(o)}
-        onDelete={(o) => handleDelete(o)}
+        onDelete={(o) => openDelete(o)}
         onCancel={(o) => handleCancel(o)}
         onFulfill={(o) => handleFulfill(o)}
         onViewPayment={(o) => handleViewPayment(o)}
@@ -256,6 +298,25 @@ const OrdersListPage = () => {
           No orders found matching your criteria.
         </Typography>
       ) : null}
+
+      {/* Delete confirmation - show only when user can delete orders */}
+      {can("orders:delete") && (
+        <MessageDialogBox
+          isOpen={deleteOpen}
+          onClose={() => {
+            setDeleteOpen(false);
+            setToDelete(null);
+          }}
+          title="Delete Order"
+          message={
+            toDelete
+              ? `Are you sure you want to delete order ${toDelete.orderNumber}? This action cannot be undone.`
+              : "Are you sure you want to proceed with this potentially destructive action? This cannot be undone."
+          }
+          actions={deleteActions}
+          variant={"warning" as DialogVariant}
+        />
+      )}
 
       <ManageOrder
         open={manageOpen}

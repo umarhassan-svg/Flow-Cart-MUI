@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useMemo, useState } from "react";
 import type { ChangeEvent } from "react";
@@ -57,7 +58,6 @@ export default function OrdersTable({
 
   useEffect(() => {
     setLocalPage(Math.max(1, page + 1));
-    console.log(localPage);
   }, [page]);
 
   useEffect(() => {

@@ -5,7 +5,6 @@ import {
   DialogTitle,
   DialogActions,
   Button,
-  Typography,
 } from "@mui/material";
 
 type Props = {
@@ -29,11 +28,7 @@ const CustomDialogbox = ({ title, open, onClose, message }: Props) => {
         },
       }}
     >
-      <DialogTitle sx={{ pb: 1 }}>
-        <Typography variant="h6" fontWeight={600}>
-          {title}
-        </Typography>
-      </DialogTitle>
+      <DialogTitle sx={{ pb: 1 }}>{title}</DialogTitle>
 
       <DialogContent>
         <DialogContentText

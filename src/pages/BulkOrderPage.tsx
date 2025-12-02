@@ -27,7 +27,11 @@ import productsService from "../services/product.service";
 import type { CartItem } from "../types/Cart";
 import LayoutMain from "../components/layout/layoutMain";
 import { useCart } from "../context/CartContext";
-import CustomDialogbox from "../components/ui/CustomDialogbox";
+import type {
+  DialogAction,
+  DialogVariant,
+} from "../types/MessageDialogBoxTypes";
+import MessageDialogBox from "../components/CustomUI/MessageDialogBox/MessageDialogBox";
 
 // --- HELPER: DOWNLOAD TEMPLATE ---
 const downloadTemplate = () => {
@@ -178,6 +182,20 @@ const BulkOrderPage = () => {
   }
 
   // --- RENDER ---
+  const dialogactions: DialogAction[] = useMemo(() => {
+    return [
+      {
+        key: "close",
+        label: "Close",
+        // MessageDialogBox will call onClose after this action, so this can be a no-op
+        onClick: (e: React.MouseEvent<HTMLButtonElement>) => {
+          /* no-op */
+          e.stopPropagation();
+        },
+        isPrimary: true,
+      },
+    ];
+  }, []);
 
   return (
     <>
@@ -441,11 +459,13 @@ const BulkOrderPage = () => {
             </Grid>
           </Grid>
           {openDialog && (
-            <CustomDialogbox
-              title="Bulk Order Message"
-              open={openDialog}
+            <MessageDialogBox
+              isOpen={openDialog} // local state controls visibility
               onClose={() => setOpenDialog(false)}
+              title="Bulk Order Message"
               message={dialogMessage}
+              actions={dialogactions}
+              variant={"success" as DialogVariant}
             />
           )}
         </Container>
