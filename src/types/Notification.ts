@@ -16,6 +16,7 @@ export type NotificationItem = {
   action?: NotificationAction;
   // priority: higher priority appears above others (optional)
   priority?: number;
+  count?: number;
 };
 
 export type NotifyOptions = Partial<

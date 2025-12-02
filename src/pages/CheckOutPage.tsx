@@ -116,7 +116,7 @@ const CheckoutPage = () => {
                   Cart Items
                 </Typography>
                 <Divider sx={{ mb: 2 }} />
-                <Paper elevation={0} sx={{ maxHeight: 400, overflowY: "auto" }}>
+                <Paper elevation={0} sx={{ maxHeight: 800, overflowY: "auto" }}>
                   {items.length === 0 ? (
                     <Box sx={{ p: 3, textAlign: "center" }}>
                       <Typography color="text.secondary">

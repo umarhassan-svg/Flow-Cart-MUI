@@ -31,7 +31,7 @@ function NotificationContainer({
         <NotificationToast
           key={it.id}
           item={it}
-          onClose={() => dismiss(it.id)}
+          dismiss={dismiss} // pass the stable function
         />
       ))}
     </div>

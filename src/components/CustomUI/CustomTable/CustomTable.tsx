@@ -230,6 +230,8 @@ export default function GenericTable<T>({
     setExportMenuOpen(false);
   };
 
+  ////////////////////////////////////////////////////////////////
+
   return (
     <div
       className={`generic-table-wrapper ${dense ? "dense" : ""} ${className}`}
@@ -273,14 +275,25 @@ export default function GenericTable<T>({
                 onClick={() => handleExport("all")}
                 role="menuitem"
               >
-                📄 Export all rows
+                Export all rows
               </button>
               <button
                 className="export-menu-item"
                 onClick={() => handleExport("page")}
                 role="menuitem"
               >
-                📋 Export current page
+                Export current page
+              </button>
+              <button
+                className="export-menu-item"
+                onClick={() => handleExport("selected")}
+                disabled={!hasSelection}
+                role="menuitem"
+                title={
+                  !hasSelection ? "Select rows to export only selected" : ""
+                }
+              >
+                Export selected rows
               </button>
             </div>
           )}

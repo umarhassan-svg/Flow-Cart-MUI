@@ -82,7 +82,7 @@ const ProductsListPage = () => {
   const navigate = useNavigate();
   const { addToCart } = useCart();
   const { can } = useAuth();
-  const { success } = useNotifications();
+  const { success, error, info } = useNotifications();
 
   // Debounce Effect
   useEffect(() => {
@@ -159,9 +159,19 @@ const ProductsListPage = () => {
     setPage(1);
   };
 
+  const [idx, setIdx] = useState(0);
   const handleAddToCart = (p: Product) => {
     addToCart(p);
-    success("Item added to cart");
+    if (idx === 0) {
+      info("Item added to cart");
+      setIdx(1);
+    } else if (idx === 1) {
+      success("Item added to cart");
+      setIdx(2);
+    } else {
+      error("Item added to cart");
+      setIdx(0);
+    }
   };
 
   const canLoadMore = products.length < total;

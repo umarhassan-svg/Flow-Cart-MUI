@@ -45,6 +45,7 @@ import {
   titleSx,
 } from "./styles";
 import { useAuth } from "../../../context/AuthContext";
+import { useNotifications } from "../../../context/NotificationContext";
 
 type Props = {
   product: Product;
@@ -60,6 +61,7 @@ const ProductDetailBox = ({ product, onAddToCart, onBuyNow }: Props) => {
   const [imgLoaded, setImgLoaded] = useState<boolean>(false);
   const { can } = useAuth();
   const primary = images[index] ?? "";
+  const { success } = useNotifications();
 
   const priceDisplay = useMemo(() => {
     const currency = product.currency ?? "USD";
@@ -268,7 +270,13 @@ const ProductDetailBox = ({ product, onAddToCart, onBuyNow }: Props) => {
 
                 <Grid size={{ xs: 12, sm: "auto" }} sx={iconsGroupSx}>
                   <Stack direction="row" spacing={0.5}>
-                    <IconButton aria-label="add to wishlist" size="small">
+                    <IconButton
+                      aria-label="add to wishlist"
+                      size="small"
+                      onClick={() => {
+                        success("Item added to favourites");
+                      }}
+                    >
                       <FavoriteBorderIcon />
                     </IconButton>
                     <IconButton aria-label="share product" size="small">

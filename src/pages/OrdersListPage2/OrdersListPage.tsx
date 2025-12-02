@@ -233,7 +233,6 @@ const OrdersListPage = () => {
         onViewPayment={(o) => handleViewPayment(o)}
         onViewDetails={(o) => handleViewDetails(o)}
         onSearch={(q) => setSearchQuery(q)}
-        onCreate={() => openEdit(undefined)}
         onRefresh={async () => {
           setLoading(true);
           setError(null);

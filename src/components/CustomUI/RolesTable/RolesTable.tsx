@@ -264,6 +264,7 @@ export default function RolesTable({
           loading={loading}
           total={total}
           rowKey="id"
+          dense
           onSelectionChange={onSelectionChange}
           onRowClick={onRowClick}
           serverSide

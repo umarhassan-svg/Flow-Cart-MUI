@@ -1,34 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* customForm.tsx */
 import React, { useEffect, useMemo, useState } from "react";
+import type {
+  Schema,
+  PatternValidator,
+  FieldConfig,
+} from "../../../types/FormTypes";
 import "./customform.css";
-
-type PatternValidator = {
-  type: "PATTERN";
-  pattern: string;
-  message?: string;
-};
-
-type Validator = "REQUIRED" | "RADIO_REQUIRED" | PatternValidator;
-
-type FieldConfig = {
-  component: string;
-  name: string;
-  label?: string;
-  isRequired?: boolean;
-  validate?: Validator[];
-  type?: string;
-  placeholder?: string;
-  options?: string[] | { label: string; value: string }[];
-  accept?: string;
-  multiple?: boolean;
-  value?: any;
-  hidden?: boolean;
-};
-
-export type Schema = {
-  fields: FieldConfig[];
-};
 
 type Props = {
   title?: string;

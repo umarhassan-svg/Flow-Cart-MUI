@@ -31,10 +31,10 @@ function IconForVariant({ variant }: { variant: string }) {
 
 function NotificationToast({
   item,
-  onClose,
+  dismiss, // <- changed
 }: {
   item: NotificationItem;
-  onClose: () => void;
+  dismiss: (id: string) => void;
 }) {
   const {
     id,
@@ -59,7 +59,6 @@ function NotificationToast({
   useEffect(() => {
     if (duration === 0) return; // sticky
     startTsRef.current = performance.now();
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     let start = startTsRef.current;
 
     const tick = (now: number) => {
@@ -69,7 +68,7 @@ function NotificationToast({
         return;
       }
 
-      const elapsed = now - (startTsRef.current ?? now);
+      const elapsed = now - (start ?? now);
       const left = Math.max(0, remainingRef.current - elapsed);
 
       if (progressRef.current) {
@@ -80,7 +79,7 @@ function NotificationToast({
         )})`;
       }
 
-      if (left <= 16) onClose();
+      if (left <= 16) dismiss(id); // use dismiss(id)
       else rafRef.current = requestAnimationFrame(tick);
     };
 
@@ -88,14 +87,14 @@ function NotificationToast({
     return () => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
     };
-  }, [duration, paused, onClose, reduced]);
+  }, [duration, paused, dismiss, reduced, id]);
 
   const handleMouseEnter = () => setPaused(true);
   const handleMouseLeave = () => setPaused(false);
   const handleFocus = () => setPaused(true);
   const handleBlur = () => setPaused(false);
   const onKey = (e: React.KeyboardEvent) => {
-    if (e.key === "Escape") onClose();
+    if (e.key === "Escape") dismiss(id);
   };
 
   const cls = `status-${variant}`;
@@ -129,7 +128,7 @@ function NotificationToast({
               className="nt-action"
               onClick={(e) => {
                 e.stopPropagation();
-                action.onClick(id, () => onClose());
+                action.onClick(id, () => dismiss(id));
               }}
               aria-label={action.label}
             >
@@ -141,7 +140,7 @@ function NotificationToast({
             className="nt-close"
             onClick={(e) => {
               e.stopPropagation();
-              onClose();
+              dismiss(id);
             }}
           >
             <IoMdClose />

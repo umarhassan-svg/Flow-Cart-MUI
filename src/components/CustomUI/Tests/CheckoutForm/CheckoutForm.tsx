@@ -1,6 +1,6 @@
 // Example usage in a parent
 import CustomForm from "../../CustomForms/CustomForm";
-import type { Schema } from "../../CustomForms/CustomForm";
+import type { Schema } from "../../../../types/FormTypes";
 // import { checkoutSchema } from "./checkoutSchema";
 
 const CheckoutForm = () => {
@@ -201,7 +201,6 @@ const CheckoutForm = () => {
         name: "country",
         label: "Country",
         options: [
-          { label: "Choose a country...", value: "" },
           { label: "United States", value: "us" },
           { label: "Canada", value: "ca" },
           { label: "United Kingdom", value: "uk" },

@@ -18,6 +18,7 @@ import ProductReviews from "../components/products/ProductReviews/ProductReviews
 import SimilarProductsList from "../components/products/SimilarProductsList/SimilarProductsList";
 import LayoutMain from "../components/layout/layoutMain";
 import { useCart } from "../context/CartContext";
+import { useNotifications } from "../context/NotificationContext";
 
 const ProductDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -26,6 +27,7 @@ const ProductDetailPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const { addToCart } = useCart();
   const navigate = useNavigate();
+  const { success } = useNotifications();
 
   useEffect(() => {
     let mounted = true;
@@ -69,6 +71,7 @@ const ProductDetailPage: React.FC = () => {
 
   function handleAddtoCart(product: Product, qty?: number | undefined): void {
     addToCart(product, qty);
+    success("Item added to cart");
   }
 
   function handleBuyNow(product: Product, qty?: number | undefined): void {

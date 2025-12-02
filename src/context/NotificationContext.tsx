@@ -1,4 +1,3 @@
-// NotificationSystem.tsx
 import React, {
   createContext,
   useCallback,
@@ -6,15 +5,17 @@ import React, {
   useMemo,
   useState,
 } from "react";
-
+import NotificationContainer from "../components/CustomUI/NotificationContainer/NotificationContainer";
+import {
+  uid,
+  DEFAULT_DURATION,
+  DEFAULT_MAX_VISIBLE,
+} from "../utils/notifications";
 import type {
   NotificationItem,
   NotifyOptions,
   NotificationsContextValue,
 } from "../types/Notification";
-
-import NotificationContainer from "../components/CustomUI/NotificationContainer/NotificationContainer";
-import { uid } from "../utils/notifications";
 
 const NotificationsContext = createContext<NotificationsContextValue | null>(
   null
@@ -22,9 +23,7 @@ const NotificationsContext = createContext<NotificationsContextValue | null>(
 
 export type ProviderProps = {
   children: React.ReactNode;
-  // max visible to show at once
   maxVisible?: number;
-  // position: top-right, top-left, bottom-right, bottom-left, top-center, bottom-center
   position?:
     | "top-right"
     | "top-left"
@@ -32,59 +31,74 @@ export type ProviderProps = {
     | "bottom-left"
     | "top-center"
     | "bottom-center";
-  // default auto-dismiss duration (ms)
   defaultDuration?: number;
 };
 
 export function NotificationProvider({
   children,
-  maxVisible = 5,
+  maxVisible = DEFAULT_MAX_VISIBLE,
   position = "top-right",
-  defaultDuration = 6000,
+  defaultDuration = DEFAULT_DURATION,
 }: ProviderProps) {
   const [items, setItems] = useState<NotificationItem[]>([]);
 
-  // Add a notification
-  const notify = useCallback(
+  // return id if user wants to dismiss manually
+  // NOTE: since id was generated inside setItems for duplicates it's not available here for that branch;
+  // But for new notifications we created id inside setItems scope, so instead we return undefined for duplicates.
+  // If you must always return id, create id before setItems. Simpler: create id before setItems:
+
+  // Small tweak: create an id before setItems to always return it
+  const notifyWithId = useCallback(
     (message: string, opts: NotifyOptions = {}) => {
       const id = uid();
       const now = Date.now();
-      const item: NotificationItem = {
-        id,
-        message,
-        title: opts.title,
-        variant: opts.variant ?? "info",
-        duration:
-          typeof opts.duration === "number" ? opts.duration : defaultDuration,
-        action: opts.action,
-        createdAt: now,
-        priority: opts.priority ?? 0,
-      };
-
       setItems((prev) => {
-        // find existing duplicate (same message + variant)
+        const variant = opts.variant ?? "info";
         const dupIndex = prev.findIndex(
-          (p) => p.message === message && p.variant === item.variant
+          (p) => p.message === message && p.variant === variant
         );
 
-        let next: NotificationItem[];
         if (dupIndex >= 0) {
-          // update existing item: create new array where duplicate is replaced and moved to front
-          next = prev.slice();
-          next.splice(dupIndex, 1); // remove old
-          next.unshift({ ...item, id: prev[dupIndex].id }); // reuse id if you prefer, or new id
-        } else {
-          next = [item, ...prev];
+          const next = prev.slice();
+          const existing = next[dupIndex];
+          next.splice(dupIndex, 1);
+          const updated: NotificationItem = {
+            ...existing,
+            createdAt: now,
+            duration:
+              typeof opts.duration === "number"
+                ? opts.duration
+                : existing.duration,
+            count: (existing.count ?? 1) + 1,
+            title: opts.title ?? existing.title,
+            action: opts.action ?? existing.action,
+            priority: opts.priority ?? existing.priority ?? 0,
+            // keep same id so UI can reuse element if desired:
+            id: existing.id,
+          };
+          return [updated, ...next];
         }
 
-        // stable sort: priority desc, then createdAt desc
+        const item: NotificationItem = {
+          id,
+          message,
+          title: opts.title,
+          variant,
+          duration:
+            typeof opts.duration === "number" ? opts.duration : defaultDuration,
+          action: opts.action,
+          createdAt: now,
+          priority: opts.priority ?? 0,
+          count: 1,
+        };
+
+        const next = [item, ...prev];
         next.sort((a, b) => {
           const pa = a.priority ?? 0;
           const pb = b.priority ?? 0;
           if (pa !== pb) return pb - pa;
           return (b.createdAt ?? 0) - (a.createdAt ?? 0);
         });
-
         return next;
       });
 
@@ -101,19 +115,19 @@ export function NotificationProvider({
 
   const api = useMemo(
     () => ({
-      notify,
+      notify: notifyWithId,
       success: (message: string, opts?: NotifyOptions) =>
-        notify(message, { ...opts, variant: "success" }),
+        notifyWithId(message, { ...opts, variant: "success" }),
       info: (message: string, opts?: NotifyOptions) =>
-        notify(message, { ...opts, variant: "info" }),
+        notifyWithId(message, { ...opts, variant: "info" }),
       warning: (message: string, opts?: NotifyOptions) =>
-        notify(message, { ...opts, variant: "warning" }),
+        notifyWithId(message, { ...opts, variant: "warning" }),
       error: (message: string, opts?: NotifyOptions) =>
-        notify(message, { ...opts, variant: "error" }),
+        notifyWithId(message, { ...opts, variant: "error" }),
       dismiss,
       clearAll,
     }),
-    [notify, dismiss, clearAll]
+    [notifyWithId, dismiss, clearAll]
   );
 
   return (

@@ -1,5 +1,5 @@
 // checkoutSchema.ts (or inline in CheckoutForm)
-import type { Schema } from "../../CustomForms/CustomForm"; // adjust import
+import type { Schema } from "../../../../types/FormTypes"; // adjust import
 
 export const checkoutSchema: Schema = {
   fields: [
