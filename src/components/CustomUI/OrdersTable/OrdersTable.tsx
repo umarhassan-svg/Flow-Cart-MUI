@@ -50,7 +50,7 @@ export default function OrdersTable({
   onRefresh,
 }: OrdersTableProps) {
   // local page state for CustomTable (1-based)
-  const [localPage, setLocalPage] = useState<number>(Math.max(1, page + 1));
+  const [_, setLocalPage] = useState<number>(Math.max(1, page + 1));
   const [localPageSize, setLocalPageSize] = useState<number>(rowsPerPage);
 
   // search state (debounced inside this component)

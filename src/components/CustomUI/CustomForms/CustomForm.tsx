@@ -40,7 +40,7 @@ export default function CustomForm({
 
   const [values, setValues] = useState<Record<string, any>>(initialValues);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [touched, setTouched] = useState<Record<string, boolean>>({});
+  const [_, setTouched] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     // reset state when schema changes
