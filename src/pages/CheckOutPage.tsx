@@ -12,7 +12,8 @@ import {
 } from "@mui/material";
 import CheckoutForm from "../components/forms/CheckoutForm";
 import CartItemCard from "../components/ui/CartItemCard";
-import { useCart } from "../context/CartContext";
+// import { useCart } from "../context/CartContext";
+import useCart from "../store/hooks/useCart";
 import type { CartItem } from "../types/Cart";
 import LayoutMain from "../components/layout/layoutMain";
 

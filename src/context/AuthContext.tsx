@@ -10,11 +10,7 @@ import React, {
 } from "react";
 import authService from "../services/auth.service";
 import type { allowedPages, User } from "../types/User";
-import {
-  clearSession,
-  saveSession,
-  getToken,
-} from "../utils/ServicesHelpers/AuthHelpers";
+import { useSession } from "../store/hooks/useSession";
 
 type AuthContextType = {
   user: User | null;
@@ -31,38 +27,54 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   children,
 }) => {
-  const [user, setUser] = useState<User | null>(null);
+  // loading local state only — session user/token live in Redux
   const [loading, setLoading] = useState(true);
+
+  // session values + actions from Redux
+  const {
+    token,
+    user,
+
+    saveSession,
+    clearSession,
+  } = useSession();
 
   // Init: check token and load profile on mount
   useEffect(() => {
     let mounted = true;
 
     const init = async () => {
-      // console.log(" Auth init started");
+      const t = token;
 
-      const token = getToken();
+      if (!t) {
+        const persistedToken = localStorage.getItem("persisted:root");
 
-      // console.log(" Token exists:", !!token);
+        if (persistedToken) {
+          const token = JSON.parse(persistedToken).session.token;
+          const user = JSON.parse(persistedToken).session.user;
 
-      // If no token, we're not authenticated
-      if (!token) {
-        // console.log(" No token found, user not authenticated");
+          if (token && user) {
+            saveSession(
+              token,
+              user,
+              user.effectivePermissions,
+              user.allowedPages
+            );
+            return;
+          }
+        }
+      }
+
+      // If no token, not authenticated
+      if (!t) {
         if (mounted) {
-          setUser(null);
           setLoading(false);
         }
         return;
       }
 
-      // We have a token, try to validate it
-      // console.log(" Token found, validating with server...");
-
       try {
         const resp = await authService.getProfile();
-        // console.log(" Profile fetched successfully:", resp.data);
-
-        // Backend returns { user: {...} }, not the user directly
         const profile = (resp.data.user || resp.data) as User;
 
         if (!profile || typeof profile !== "object" || !("id" in profile)) {
@@ -70,30 +82,20 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         }
 
         if (mounted) {
-          // Update storage with fresh data
+          // Save fresh profile into Redux session
           saveSession(
-            token,
+            t,
             profile,
             profile.effectivePermissions,
             profile.allowedPages
           );
-          setUser(profile);
-          // console.log(" User authenticated successfully");
         }
       } catch (err) {
-        console.error(" Profile fetch failed:", err);
-
-        // Token is invalid or expired, clear everything
+        // Token invalid/expired -> clear session
+        console.error("Profile fetch failed:", err);
         clearSession();
-
-        if (mounted) {
-          setUser(null);
-        }
       } finally {
-        if (mounted) {
-          setLoading(false);
-          // console.log(" Auth init completed");
-        }
+        if (mounted) setLoading(false);
       }
     };
 
@@ -102,22 +104,21 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     return () => {
       mounted = false;
     };
+    // We intentionally run on mount only. If you want to re-run when token changes, add `token` to deps.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Login user
   const login = async (email: string, password: string): Promise<User> => {
-    // console.log(" Login attempt for:", email);
     setLoading(true);
-
     try {
       const resp = await authService.login(email, password);
-      // console.log(" Login response received:", resp.data);
 
       const {
-        token,
+        token: t,
         user: u,
-        effectivePermissions,
-        allowedPages,
+        effectivePermissions: eps,
+        allowedPages: aps,
       } = resp.data as {
         token: string;
         user: User;
@@ -129,13 +130,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         throw new Error("Login failed: invalid server response");
       }
 
-      saveSession(token, u, effectivePermissions, allowedPages);
-      setUser(u);
-      // console.log(" User logged in successfully");
+      // Save into Redux session
+      saveSession(t, u, eps, aps);
+
       return u;
     } catch (err: unknown) {
-      // console.error(" Login failed:", err);
-
       let message = "Login failed";
       if (err && typeof err === "object") {
         const e = err as {
@@ -156,32 +155,23 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
 
   // Logout user
   const logout = async (): Promise<void> => {
-    // console.log(" Logging out user");
-
     try {
       await authService.logout();
     } catch (err) {
       console.error("Logout request failed:", err);
     } finally {
       clearSession();
-      setUser(null);
-      // console.log(" User logged out, session cleared");
     }
   };
 
   // Refresh profile
   const refresh = async (): Promise<void> => {
-    // console.log("Refreshing user profile");
-
-    const token = getToken();
-    if (!token) {
-      throw new Error("No token available");
-    }
+    const t = token;
+    if (!t) throw new Error("No token available");
 
     setLoading(true);
     try {
       const resp = await authService.getProfile();
-      // Backend returns { user: {...} }, not the user directly
       const profile = (resp.data.user || resp.data) as User;
 
       if (!profile || typeof profile !== "object" || !("id" in profile)) {
@@ -189,13 +179,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       }
 
       saveSession(
-        token,
+        t,
         profile,
         profile.effectivePermissions,
         profile.allowedPages
       );
-      setUser(profile);
-      // console.log("Profile refreshed successfully");
     } catch (err) {
       console.error("Refresh failed:", err);
       throw err;
@@ -211,14 +199,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   const value = useMemo(
     () => ({
       user,
-      isAuthenticated: Boolean(user && getToken()),
+      isAuthenticated: Boolean(user && token),
       loading,
       login,
       logout,
       refresh,
       can,
     }),
-    [user, loading]
+    [user, token, loading]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

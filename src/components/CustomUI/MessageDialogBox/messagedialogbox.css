@@ -12,13 +12,15 @@
     --dialog-bg: #ffffff;
     --dialog-radius: 18px;
     --dialog-backdrop: rgba(2, 6, 23, 0.45);
+
+    --dialog-spacing-base: 12px;
+    /* base step used below */
 }
 
 /* --- Backdrop --- */
 .dialog-backdrop {
     position: fixed;
     inset: 0;
-    /* shorthand for top:0;right:0;bottom:0;left:0; */
     display: flex;
     align-items: center;
     justify-content: center;
@@ -29,20 +31,22 @@
     animation: dialogBackdropIn .18s ease-out;
 }
 
-/* --- Dialog Box: tall portrait ratio 9:16 --- */
+/* --- Dialog Box: wider, responsive --- */
 .dialog-box {
     background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), var(--dialog-bg));
     border-radius: var(--dialog-radius);
     box-shadow: 0 20px 50px rgba(2, 6, 23, 0.32);
-    width: min(420px, 92vw);
-    /* keep a vertical rectangle (width / height = 9 / 16) */
+    width: min(640px, 96%);
+    /* increased width */
+    max-width: 96%;
     display: flex;
     flex-direction: column;
     align-items: center;
     text-align: center;
     overflow: hidden;
     padding: 32px 24px;
-    gap: 18px;
+    /* slightly larger padding for breathing room */
+    /* removed gap: we use explicit margins for precise control */
     animation: dialogPop .28s cubic-bezier(.16, 1, .3, 1);
 }
 
@@ -60,7 +64,7 @@
 @keyframes dialogPop {
     from {
         opacity: 0;
-        transform: translateY(16px) scale(0.98);
+        transform: translateY(16px) scale(.98);
     }
 
     to {
@@ -71,25 +75,25 @@
 
 /* --- Icon on top (big, centered) --- */
 .dialog-icon-wrapper {
-    width: 110px;
-    height: 110px;
-    min-width: 110px;
-    min-height: 110px;
+    width: 90px;
+    height: 90px;
+    min-width: 90px;
+    min-height: 90px;
     border-radius: 50%;
     display: grid;
     place-items: center;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0.12));
-    box-shadow: 0 6px 18px rgba(2, 6, 23, 0.12), inset 0 -6px 18px rgba(255, 255, 255, 0.06);
-    border: 2px solid rgba(255, 255, 255, 0.24);
+    background: transparent;
     color: var(--dialog-primary);
-    /* default color, overridden by variant classes */
+    /* ensure icon sits with a controlled bottom margin to main text */
+    margin-bottom: 18px;
+    /* icon → maintext spacing: 24px (≈ 2× base) */
 }
 
 /* Icon sizing */
 .dialog-icon-wrapper svg,
 .dialog-icon-wrapper>* {
-    width: 100px;
-    height: 100px;
+    width: 80px;
+    height: 80px;
     display: block;
 }
 
@@ -99,36 +103,50 @@
     pointer-events: none;
 }
 
-/* --- Title / Message --- */
+/* --- Title (hidden) --- */
 .dialog-message-title {
-    margin: 6px 0 4px;
-    font-size: 1.15rem;
+    display: none;
+    /* title styling removed as requested */
+}
+
+/* --- Main text (primary message) --- */
+.dialog-message-maintext {
+    margin: 0;
+    font-size: 1.5rem;
     font-weight: 700;
     color: var(--dialog-text-main);
     letter-spacing: -0.02em;
+    line-height: 1.2;
+    /* extra spacing below maintext to separate from message */
+    margin-bottom: 6px;
+    /* maintext → message spacing: 12px (base) */
 }
 
+/* --- Secondary message / descriptive text --- */
 .dialog-message-text {
     margin: 0;
     font-size: 0.98rem;
     color: var(--dialog-text-sub);
     line-height: 1.45;
-    padding: 0 10px;
-    max-width: 82%;
+    padding: 0 8px;
+    max-width: 84%;
     word-wrap: break-word;
+    /* spacing below message before actions */
+    margin-bottom: 24px;
+    /* message → buttons spacing: 18px (≈ 1.5× base) */
 }
 
 /* --- Actions --- */
 .dialog-actions {
-    margin-top: auto;
-    /* push actions to the bottom area */
+    /* keep actions near the bottom but not pushed so far — remove margin-top:auto to keep natural flow */
     width: 100%;
     display: flex;
     gap: 12px;
     justify-content: center;
     align-items: center;
-    padding-bottom: 8px;
-    /* keep small subtle separation */
+    margin-top: 20px;
+    padding-bottom: 6px;
+    /* a touch of padding under buttons */
 }
 
 /* Buttons: pill / modern */
@@ -154,9 +172,9 @@
     color: #fff;
     border: 1px solid rgba(0, 0, 0, 0.06);
 }
+
 .btn-primary:hover {
     background: var(--dialog-primary-hover);
-
 }
 
 /* Secondary button - subtle */
@@ -171,11 +189,14 @@
 @media (max-width: 420px) {
     .dialog-box {
         padding: 20px 18px;
+        width: calc(100% - 36px);
     }
 
     .dialog-icon-wrapper {
         width: 92px;
         height: 92px;
+        margin-bottom: 18px;
+        /* scaled down */
     }
 
     .dialog-icon-wrapper svg {
@@ -194,31 +215,24 @@
     }
 }
 
-/* ========================================= */
-/* COLOR VARIANTS (override the icon color) */
-/* ========================================= */
+/* COLOR VARIANTS (icon color & accent shadows) */
 .dialog-variant-info .dialog-icon-wrapper {
     color: var(--dialog-primary);
-    box-shadow: 0 10px 30px rgba(25, 118, 210, 0.12);
 }
 
 .dialog-variant-success .dialog-icon-wrapper {
     color: var(--dialog-success);
-    box-shadow: 0 10px 30px rgba(46, 125, 50, 0.10);
 }
 
 .dialog-variant-warning .dialog-icon-wrapper {
     color: var(--dialog-warning);
-    box-shadow: 0 10px 30px rgba(237, 108, 2, 0.10);
 }
 
 .dialog-variant-error .dialog-icon-wrapper {
     color: var(--dialog-error);
-    box-shadow: 0 10px 30px rgba(211, 47, 47, 0.10);
 }
 
-/* remove focus outline, keep accessible focus ring */
+/* Accessible focus */
 .dialog-btn:focus {
     outline: none;
-    box-shadow: 0 0 0 4px rgba(25, 118, 210, 0.12);
 }

@@ -307,12 +307,12 @@ const OrdersListPage = () => {
             setDeleteOpen(false);
             setToDelete(null);
           }}
-          title="Delete Order"
-          message={
+          maintext={
             toDelete
-              ? `Are you sure you want to delete order ${toDelete.orderNumber}? This action cannot be undone.`
-              : "Are you sure you want to proceed with this potentially destructive action? This cannot be undone."
+              ? `Are you sure you want to delete order ${toDelete.orderNumber}?`
+              : "Are you sure you want to delete the selected orders?"
           }
+          message="This cannot be undone."
           actions={deleteActions}
           variant={"warning" as DialogVariant}
         />

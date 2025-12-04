@@ -1,25 +1,36 @@
-import type { NotificationItem } from "../../../types/Notification";
+// src/components/CustomUI/NotificationContainer/NotificationContainer.tsx
+// import type { ProviderProps } from "../../../context/NotificationContext"; // for the position type union if you want to reuse it
+import {
+  useAppDispatch,
+  useAppSelector,
+} from "../../../store/hooks/useNotifications";
+import { dismissNotification } from "../../../store/slices/notificationSlice";
 import NotificationToast from "../NotificationToast/NotificationToast";
-import type { ProviderProps } from "../../../context/NotificationContext";
 import "./notificationcontainer.css";
-type ContainerProps = {
-  items: NotificationItem[];
-  dismiss: (id: string) => void;
-  maxVisible: number;
-  position: ProviderProps["position"];
+import { DEFAULT_MAX_VISIBLE } from "../../../utils/notifications";
+
+type Props = {
+  maxVisible?: number;
+  position?:
+    | "top-right"
+    | "top-left"
+    | "bottom-right"
+    | "bottom-left"
+    | "top-center"
+    | "bottom-center";
 };
 
 function NotificationContainer({
-  items,
-  dismiss,
-  maxVisible,
-  position,
-}: ContainerProps) {
-  // show up to maxVisible, keep rest queued
-  const visible = items.slice(0, maxVisible);
+  maxVisible = DEFAULT_MAX_VISIBLE,
+  position = "top-right",
+}: Props) {
+  const items = useAppSelector((s) => s.notifications.items);
+  const dispatch = useAppDispatch();
 
-  // determine container class based on position
+  const visible = items.slice(0, maxVisible);
   const posClass = `nt-${position}`;
+
+  const dismiss = (id: string) => dispatch(dismissNotification(id));
 
   return (
     <div
@@ -28,11 +39,7 @@ function NotificationContainer({
       aria-atomic="true"
     >
       {visible.map((it) => (
-        <NotificationToast
-          key={it.id}
-          item={it}
-          dismiss={dismiss} // pass the stable function
-        />
+        <NotificationToast key={it.id} item={it} dismiss={dismiss} />
       ))}
     </div>
   );

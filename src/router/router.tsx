@@ -1,103 +1,116 @@
 // src/router/AppRouter.tsx
+import { Suspense, lazy } from "react";
 import { createBrowserRouter, Navigate, Outlet } from "react-router-dom";
-
 import PrivateRoute from "../components/PrivateRoute/PrivateRoute";
-
-// Pages
-import Login from "../pages/Login";
-import Unauthorized from "../pages/unauthorized";
-// import UsersManagement from "../pages/admin/UsersManagement";
-import UsersManagement from "../pages/UserManagement2/UserManagement2";
-//import RolesManagement from "../pages/admin/RolesManagement";
-import RolesManagement from "../pages/RolesManagement2/RolesManagement2";
-import { AdminDashboard } from "../pages/admin/Dashboard";
-import ManagerDashboard from "../pages/manager/ManagerDashboard";
-import Home from "../pages/Home";
-import ProductsListPage from "../pages/ProductsListPage";
-import ProductDetailPage from "../pages/ProductDetailPage";
-import CheckOutPage from "../pages/CheckOutPage";
-import BulkOrderPage from "../pages/BulkOrderPage";
-import { NavProvider } from "../context/NavContext";
-// import OrdersListPage from "../pages/OrdersListPage";
-import OrdersListPage from "../pages/OrdersListPage2/OrdersListPage";
-import ProfilePage from "../pages/ProfilePage";
-import EmployeesPage from "../pages/EmployeesPage";
-import TestErrorBoundry from "../pages/TestErrorBoundry";
 import ErrorBoundary from "../pages/ErrorBoundary/ErrorBoundary";
 import { SessionProvider } from "../context/SessionContext";
 import { CartProvider } from "../context/CartContext";
-import UsersTable from "../pages/UserManagement2/UserManagement2";
-import TCustomForm from "../pages/TCustomForm";
-import { NotificationProvider } from "../context/NotificationContext";
-/**
- * Routes:
- * - /admin/users           -> list (requires users:read)
- * - /admin/users/create    -> open ManageUser in "create" mode (requires users:create)
- * - /admin/users/:id/edit  -> open ManageUser in "edit" mode (requires users:update)
- *
- * - /admin/roles           -> list (requires roles:read)
- * - /admin/roles/create    -> open ManageRole in "create" mode (requires roles:create)
- * - /admin/roles/:id/edit  -> open ManageRole in "edit" mode (requires roles:update)
- */
+import { NavProvider } from "../context/NavContext";
 
+import NotificationContainer from "../components/CustomUI/NotificationContainer/NotificationContainer";
+import { AdminDashboard } from "../pages/admin/Dashboard";
+import Loader from "../pages/LoadingPage.tsx";
+
+// --- Lazy load all pages ---
+const Login = lazy(() => import("../pages/Login"));
+const Unauthorized = lazy(() => import("../pages/unauthorized"));
+const UsersManagement = lazy(
+  () => import("../pages/UserManagement2/UserManagement2")
+);
+const RolesManagement = lazy(
+  () => import("../pages/RolesManagement2/RolesManagement2")
+);
+const ManagerDashboard = lazy(
+  () => import("../pages/manager/ManagerDashboard")
+);
+const Home = lazy(() => import("../pages/Home"));
+const ProductsListPage = lazy(() => import("../pages/ProductsListPage"));
+const ProductDetailPage = lazy(() => import("../pages/ProductDetailPage"));
+const CheckOutPage = lazy(() => import("../pages/CheckOutPage"));
+const BulkOrderPage = lazy(() => import("../pages/BulkOrderPage"));
+const OrdersListPage = lazy(
+  () => import("../pages/OrdersListPage2/OrdersListPage")
+);
+const ProfilePage = lazy(() => import("../pages/ProfilePage"));
+const EmployeesPage = lazy(() => import("../pages/EmployeesPage"));
+const TestErrorBoundry = lazy(() => import("../pages/TestErrorBoundry"));
+const UsersTable = lazy(
+  () => import("../pages/UserManagement2/UserManagement2")
+);
+const TCustomForm = lazy(() => import("../pages/TCustomForm"));
+
+// --- Router ---
 const router = createBrowserRouter([
-  // Public
+  // Public routes
   {
     path: "/login",
-    element: <Login />,
+    element: (
+      <Suspense fallback={<Loader />}>
+        <Login />
+      </Suspense>
+    ),
+  },
+  {
+    path: "/unauthorized",
+    element: (
+      <Suspense fallback={<Loader />}>
+        <Unauthorized />
+      </Suspense>
+    ),
   },
 
-  // All private routes: require authentication
+  // Private routes
   {
     element: (
       <ErrorBoundary>
         <SessionProvider>
           <CartProvider>
             <NavProvider>
-              <NotificationProvider>
-                <PrivateRoute />
-              </NotificationProvider>
+              <PrivateRoute />
+              <NotificationContainer maxVisible={5} position="top-right" />
             </NavProvider>
           </CartProvider>
         </SessionProvider>
       </ErrorBoundary>
     ),
-    // auth-only wrapper
     children: [
-      // Profile page
       {
         path: "/profile",
         element: (
           <PrivateRoute requiredPermissions={["profile:read"]}>
-            <ProfilePage />
+            <Suspense fallback={<Loader />}>
+              <ProfilePage />
+            </Suspense>
           </PrivateRoute>
         ),
       },
-      //Employees
       {
         path: "/employees",
         element: (
           <PrivateRoute requiredPermissions={["employees:read"]}>
-            <EmployeesPage />
+            <Suspense fallback={<Loader />}>
+              <EmployeesPage />
+            </Suspense>
           </PrivateRoute>
         ),
       },
-      // Home page – maybe all logged-in users can access
       {
         path: "/home",
         element: (
-          <PrivateRoute requiredPermissions={[] /* or [] for all */}>
-            <Home />
+          <PrivateRoute requiredPermissions={[]}>
+            <Suspense fallback={<Loader />}>
+              <Home />
+            </Suspense>
           </PrivateRoute>
         ),
       },
-
-      // Products
       {
         path: "/products",
         element: (
           <PrivateRoute requiredPermissions={["products:read"]}>
-            <ProductsListPage />
+            <Suspense fallback={<Loader />}>
+              <ProductsListPage />
+            </Suspense>
           </PrivateRoute>
         ),
       },
@@ -105,52 +118,62 @@ const router = createBrowserRouter([
         path: "/products/:id",
         element: (
           <PrivateRoute requiredPermissions={["products:read"]}>
-            <ProductDetailPage />
+            <Suspense fallback={<Loader />}>
+              <ProductDetailPage />
+            </Suspense>
           </PrivateRoute>
         ),
       },
-
-      // Checkout
       {
         path: "/checkout",
         element: (
           <PrivateRoute requiredPermissions={["orders:create"]}>
-            <CheckOutPage />
+            <Suspense fallback={<Loader />}>
+              <CheckOutPage />
+            </Suspense>
           </PrivateRoute>
         ),
       },
-
-      // Bulk order
       {
         path: "/bulk-order",
         element: (
           <PrivateRoute requiredPermissions={["orders:create"]}>
-            <BulkOrderPage />
+            <Suspense fallback={<Loader />}>
+              <BulkOrderPage />
+            </Suspense>
           </PrivateRoute>
         ),
       },
-
-      // Orders list
       {
         path: "/orders",
         element: (
           <PrivateRoute requiredPermissions={["orders:read"]}>
-            <OrdersListPage />
+            <Suspense fallback={<Loader />}>
+              <OrdersListPage />
+            </Suspense>
           </PrivateRoute>
         ),
       },
-
-      // Dashboard
       {
         path: "/dashboard",
         element: (
           <PrivateRoute requiredPermissions={["dashboard:read"]}>
-            <AdminDashboard />
+            <Suspense fallback={<Loader />}>
+              <AdminDashboard />
+            </Suspense>
           </PrivateRoute>
         ),
       },
-
-      // Users routing
+      {
+        path: "/manager/dashboard",
+        element: (
+          <PrivateRoute requiredPermissions={["dashboard:view"]}>
+            <Suspense fallback={<Loader />}>
+              <ManagerDashboard />
+            </Suspense>
+          </PrivateRoute>
+        ),
+      },
       {
         path: "/admin/users",
         element: (
@@ -159,43 +182,48 @@ const router = createBrowserRouter([
           </PrivateRoute>
         ),
         children: [
-          { index: true, element: <UsersManagement /> },
+          {
+            index: true,
+            element: (
+              <Suspense fallback={<Loader />}>
+                <UsersManagement />
+              </Suspense>
+            ),
+          },
           {
             path: "create",
             element: (
-              <PrivateRoute requiredPermissions={["users:create"]}>
+              <Suspense fallback={<Loader />}>
                 <UsersManagement />
-              </PrivateRoute>
+              </Suspense>
             ),
           },
           {
             path: ":id",
             element: (
-              <PrivateRoute requiredPermissions={["users:read"]}>
+              <Suspense fallback={<Loader />}>
                 <UsersManagement />
-              </PrivateRoute>
+              </Suspense>
             ),
           },
           {
             path: ":id/edit",
             element: (
-              <PrivateRoute requiredPermissions={["users:update"]}>
+              <Suspense fallback={<Loader />}>
                 <UsersManagement />
-              </PrivateRoute>
+              </Suspense>
             ),
           },
           {
             path: ":id/employee-card/download",
             element: (
-              <PrivateRoute requiredPermissions={["users:update"]}>
+              <Suspense fallback={<Loader />}>
                 <UsersManagement />
-              </PrivateRoute>
+              </Suspense>
             ),
           },
         ],
       },
-
-      // Roles routing
       {
         path: "/admin/roles",
         element: (
@@ -204,51 +232,56 @@ const router = createBrowserRouter([
           </PrivateRoute>
         ),
         children: [
-          { index: true, element: <RolesManagement /> },
+          {
+            index: true,
+            element: (
+              <Suspense fallback={<Loader />}>
+                <RolesManagement />
+              </Suspense>
+            ),
+          },
           {
             path: "create",
             element: (
-              <PrivateRoute requiredPermissions={["roles:create"]}>
+              <Suspense fallback={<Loader />}>
                 <RolesManagement />
-              </PrivateRoute>
+              </Suspense>
             ),
           },
           {
             path: ":id/edit",
             element: (
-              <PrivateRoute requiredPermissions={["roles:update"]}>
+              <Suspense fallback={<Loader />}>
                 <RolesManagement />
-              </PrivateRoute>
+              </Suspense>
             ),
           },
         ],
       },
-
-      // Manager dashboard
-      {
-        path: "/manager/dashboard",
-        element: (
-          <PrivateRoute requiredPermissions={["dashboard:view"]}>
-            <ManagerDashboard />
-          </PrivateRoute>
-        ),
-      },
-
       {
         path: "/test-error",
-        element: <TestErrorBoundry />,
+        element: (
+          <Suspense fallback={<Loader />}>
+            <TestErrorBoundry />
+          </Suspense>
+        ),
       },
       {
         path: "/test-custom-table",
-        element: <UsersTable />,
+        element: (
+          <Suspense fallback={<Loader />}>
+            <UsersTable />
+          </Suspense>
+        ),
       },
-
-      // Login
-      { path: "/test-customform", element: <TCustomForm /> },
-
-      // Unauthorized
-      { path: "/unauthorized", element: <Unauthorized /> },
-      {},
+      {
+        path: "/test-customform",
+        element: (
+          <Suspense fallback={<Loader />}>
+            <TCustomForm />
+          </Suspense>
+        ),
+      },
     ],
   },
 

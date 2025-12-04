@@ -26,7 +26,8 @@ import CartItemCard from "../components/ui/CartItemCard";
 import productsService from "../services/product.service";
 import type { CartItem } from "../types/Cart";
 import LayoutMain from "../components/layout/layoutMain";
-import { useCart } from "../context/CartContext";
+// import { useCart } from "../context/CartContext";
+import useCart from "../store/hooks/useCart";
 import type {
   DialogAction,
   DialogVariant,
@@ -462,8 +463,7 @@ const BulkOrderPage = () => {
             <MessageDialogBox
               isOpen={openDialog} // local state controls visibility
               onClose={() => setOpenDialog(false)}
-              title="Bulk Order Message"
-              message={dialogMessage}
+              maintext={dialogMessage}
               actions={dialogactions}
               variant={"success" as DialogVariant}
             />

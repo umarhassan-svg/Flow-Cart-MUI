@@ -73,6 +73,7 @@ export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({
         clearTimeout(timerRef.current);
         timerRef.current = null;
       }
+
       events.forEach((event) => {
         window.removeEventListener(event, resetTimer);
       });

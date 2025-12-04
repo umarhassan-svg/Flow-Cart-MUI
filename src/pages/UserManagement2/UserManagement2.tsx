@@ -254,8 +254,10 @@ const UsersManagement = () => {
         <MessageDialogBox
           isOpen={deleteOpen} // local state controls visibility
           onClose={() => setDeleteOpen(false)}
-          title="Deletion Alert"
-          message="Are you sure you want to proceed with this potentially destructive action? This cannot be undone."
+          maintext={
+            "Are you sure you want to delete " + deleteTarget?.name + "?"
+          }
+          message=" This cannot be undone."
           actions={deleteactions}
           variant={"warning" as DialogVariant}
         />

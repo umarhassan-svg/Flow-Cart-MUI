@@ -1,6 +1,7 @@
 // src/components/checkout/CheckoutForm.tsx
 import { useMemo, useState } from "react";
-import { useCart } from "../../context/CartContext";
+// import { useCart } from "../../context/CartContext";
+import useCart from "../../store/hooks/useCart";
 import CustomForm from "../CustomUI/CustomForms/CustomForm";
 import { checkoutSchema } from "../CustomUI/Tests/CheckoutForm/checkoutSchema"; // <-- import schema
 import {
@@ -107,8 +108,7 @@ const CheckoutForm = () => {
         <MessageDialogBox
           isOpen={openDialog} // local state controls visibility
           onClose={() => setOpenDialog(false)}
-          title="Order Status"
-          message={dialogMessage}
+          maintext={dialogMessage}
           actions={dialogactions}
           variant={"success" as DialogVariant}
         />

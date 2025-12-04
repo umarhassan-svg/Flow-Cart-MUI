@@ -219,7 +219,6 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
       };
     } catch (err) {
       // In the unlikely event something unexpected exists, return zeros (fail-safe)
-      // eslint-disable-next-line no-console
       console.error("[CartProvider] error computing totals:", err);
       return {
         itemsCount: 0,

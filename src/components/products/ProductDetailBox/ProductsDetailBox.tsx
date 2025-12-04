@@ -45,7 +45,7 @@ import {
   titleSx,
 } from "./styles";
 import { useAuth } from "../../../context/AuthContext";
-import { useNotifications } from "../../../context/NotificationContext";
+import { useNotifications } from "../../../hooks/useNotification";
 
 type Props = {
   product: Product;

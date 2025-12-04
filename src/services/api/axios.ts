@@ -1,40 +1,31 @@
 // src/api/axios.ts
 import axios from "axios";
+import { store } from "../../store"; // <-- IMPORTANT
 
-const API_URL =  "http://localhost:5000";
+const API_URL = import.meta.env.VITE_BACKEND_URL;
 
 const api = axios.create({
   baseURL: API_URL,
-  headers: {
-    "Content-Type": "application/json",
-  },
+  headers: { "Content-Type": "application/json" },
 });
 
-/**
- * Attach auth token (if present) to every request.
- * Token is expected to be stored in localStorage under "token".
- */
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
+  const state = store.getState();
+  const token = state.session.token; // <-- Get token from Redux
+
   if (token && config.headers) {
     config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
 });
 
-/**
- * Global response interceptor:
- * - Remove local auth on 401 (simple strategy; customize if you have refresh tokens)
- */
 api.interceptors.response.use(
-  (response) => response,
+  (r) => r,
   (error) => {
     if (error?.response?.status === 401) {
-      // Basic cleanup on unauthorized
-      localStorage.removeItem("token");
-      localStorage.removeItem("user");
-      // optionally trigger UI redirect to /login here
-      // window.location.href = "/login";
+      // Clear session globally if needed
+      store.dispatch({ type: "session/clearSession" });
+      // Optionally redirect to login
     }
     return Promise.reject(error);
   }

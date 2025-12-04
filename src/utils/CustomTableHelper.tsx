@@ -208,7 +208,6 @@ export function Chip({
   );
 }
 
-// eslint-disable-next-line react-refresh/only-export-components
 export function ChipOverflowDialog({
   open,
   onClose,

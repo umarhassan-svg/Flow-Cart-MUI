@@ -26,9 +26,10 @@ import FilterDialog, {
 import LayoutMain from "../components/layout/layoutMain";
 import { useNavigate } from "react-router-dom";
 
-import { useCart } from "../context/CartContext";
+// import { useCart } from "../context/CartContext";
+import useCart from "../store/hooks/useCart";
 import { useAuth } from "../context/AuthContext";
-import { useNotifications } from "../context/NotificationContext";
+import { useNotifications } from "../hooks/useNotification";
 
 const sampleBanners: Banner[] = [
   {
@@ -82,7 +83,7 @@ const ProductsListPage = () => {
   const navigate = useNavigate();
   const { addToCart } = useCart();
   const { can } = useAuth();
-  const { success, error, info } = useNotifications();
+  const { success } = useNotifications();
 
   // Debounce Effect
   useEffect(() => {
@@ -159,19 +160,9 @@ const ProductsListPage = () => {
     setPage(1);
   };
 
-  const [idx, setIdx] = useState(0);
   const handleAddToCart = (p: Product) => {
     addToCart(p);
-    if (idx === 0) {
-      info("Item added to cart");
-      setIdx(1);
-    } else if (idx === 1) {
-      success("Item added to cart");
-      setIdx(2);
-    } else {
-      error("Item added to cart");
-      setIdx(0);
-    }
+    success("Item added to cart");
   };
 
   const canLoadMore = products.length < total;

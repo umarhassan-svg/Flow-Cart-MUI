@@ -17,8 +17,9 @@ import ProductDetailBox from "../components/products/ProductDetailBox/ProductsDe
 import ProductReviews from "../components/products/ProductReviews/ProductReviews";
 import SimilarProductsList from "../components/products/SimilarProductsList/SimilarProductsList";
 import LayoutMain from "../components/layout/layoutMain";
-import { useCart } from "../context/CartContext";
-import { useNotifications } from "../context/NotificationContext";
+// import { useCart } from "../context/CartContext";
+import useCart from "../store/hooks/useCart";
+import { useNotifications } from "../hooks/useNotification";
 
 const ProductDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();

@@ -21,9 +21,10 @@ const variantIcons: Record<DialogVariant, React.ReactNode> = {
 export interface MessageDialogBoxProps {
   isOpen: boolean;
   onClose: () => void;
-  message: string;
+  message?: string;
   actions: DialogAction[];
   title?: string;
+  maintext: string;
   variant?: DialogVariant;
   // NOTE: layout removed — dialog is centered / portrait by design
   children?: React.ReactNode;
@@ -34,6 +35,7 @@ const MessageDialogBox: React.FC<MessageDialogBoxProps> = ({
   onClose,
   title,
   message,
+  maintext,
   actions,
   variant = "info",
   children,
@@ -67,6 +69,13 @@ const MessageDialogBox: React.FC<MessageDialogBoxProps> = ({
           <h3 className="dialog-message-title" id="dialog-title">
             {title}
           </h3>
+        )}
+
+        {/* Subtitle (optional) */}
+        {maintext && (
+          <p className="dialog-message-maintext" id="dialog-subtitle">
+            {maintext}
+          </p>
         )}
 
         {/* Message */}

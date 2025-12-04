@@ -14,7 +14,8 @@ import {
 import CloseIcon from "@mui/icons-material/Close";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import type { CartItem } from "../../types/Cart";
-import { useCart } from "../../context/CartContext";
+// import { useCart } from "../../context/CartContext";
+import useCart from "../../store/hooks/useCart";
 import CartItemCard from "../ui/CartItemCard";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
