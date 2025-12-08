@@ -107,10 +107,11 @@ export function exportTableCSV<T>(
   rows: T[],
   filename?: string
 ): void {
-  if ("actions" === columns[columns.length - 1].id) {
-    columns.pop();
+  const temp_cols = [...columns]
+  if (temp_cols.length && temp_cols[temp_cols.length - 1].id === "actions") {
+    temp_cols.pop();
   }
-  const prepared = prepareDataForCSV(columns, rows);
+  const prepared = prepareDataForCSV(temp_cols, rows);
   const finalName = filename ?? `export-${new Date().toISOString()}.csv`;
   exportToCSV(prepared, finalName);
 }

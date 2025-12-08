@@ -2,14 +2,15 @@
 import { Suspense, lazy } from "react";
 import { createBrowserRouter, Navigate, Outlet } from "react-router-dom";
 import PrivateRoute from "../components/PrivateRoute/PrivateRoute";
-import ErrorBoundary from "../pages/ErrorBoundary/ErrorBoundary";
+import FriendlyErrorBoundary from "../pages/ErrorBoundary/ErrorBoundary";
 import { SessionProvider } from "../context/SessionContext";
-import { CartProvider } from "../context/CartContext";
+// import { CartProvider } from "../context/CartContext";
 import { NavProvider } from "../context/NavContext";
 
 import NotificationContainer from "../components/CustomUI/NotificationContainer/NotificationContainer";
 import { AdminDashboard } from "../pages/admin/Dashboard";
 import Loader from "../pages/LoadingPage.tsx";
+import ContactUsPage from "../pages/ContactUsPage.tsx";
 
 // --- Lazy load all pages ---
 const Login = lazy(() => import("../pages/Login"));
@@ -62,16 +63,14 @@ const router = createBrowserRouter([
   // Private routes
   {
     element: (
-      <ErrorBoundary>
+      <FriendlyErrorBoundary>
         <SessionProvider>
-          <CartProvider>
-            <NavProvider>
-              <PrivateRoute />
-              <NotificationContainer maxVisible={5} position="top-right" />
-            </NavProvider>
-          </CartProvider>
+          <NavProvider>
+            <PrivateRoute />
+            <NotificationContainer maxVisible={5} position="top-right" />
+          </NavProvider>
         </SessionProvider>
-      </ErrorBoundary>
+      </FriendlyErrorBoundary>
     ),
     children: [
       {
@@ -282,6 +281,14 @@ const router = createBrowserRouter([
           </Suspense>
         ),
       },
+      {
+        path: "/contact-us",
+        element: (
+          <Suspense fallback={<Loader />}>
+            <ContactUsPage />
+          </Suspense>
+        ),
+      }
     ],
   },
 

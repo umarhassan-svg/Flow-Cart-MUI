@@ -1,7 +1,9 @@
 import React from "react";
+import { useLocation } from "react-router-dom"; // Import useLocation
 import { Box, Paper, Typography, Button, Stack } from "@mui/material";
 import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
 
+// --- Props Type ---
 type Props = {
   title?: string;
   message?: string;
@@ -9,37 +11,38 @@ type Props = {
   showReload?: boolean;
   showReport?: boolean;
   onReset?: () => void;
-  onReport?: () => void; // optional hook to send a report without exposing details
+  onReport?: () => void;
   children?: React.ReactNode;
+  location?: ReturnType<typeof useLocation>;
 };
 
 type State = { hasError: boolean };
 
-// MUI-friendly Error Boundary: shows a simple, non-technical message to end users.
-export default class FriendlyErrorBoundary extends React.Component<
-  Props,
-  State
-> {
+class FriendlyErrorBoundaryClass extends React.Component<Props, State> {
   state: State = { hasError: false };
 
   static getDerivedStateFromError() {
     return { hasError: true };
   }
 
-  componentDidCatch(error: Error, info: React.ErrorInfo) {
-    // Do not display technical details to users.
-    // If you have a telemetry/reporting function, call it here quietly.
-    // Example: (window as any).__SEND_LOG__?.({ error, info });
-    // try {
-    //   if (window.__SEND_LOG__) {
-    //     window.__SEND_LOG__({ error, info });
-    //   }
-    // } catch {
-    //   // swallow any errors from logging
-    // }
+  // --- FIX: Implement logic to reset hasError when navigation changes ---
+  componentDidUpdate(prevProps: Props) {
+    const currentLocation = this.props.location;
+    const prevLocation = prevProps.location;
 
+    if (
+      this.state.hasError &&
+      currentLocation &&
+      prevLocation &&
+      currentLocation.key !== prevLocation.key
+    ) {
+      this.setState({ hasError: false });
+    }
+  }
+  // ---------------------------------------------------------------------
+
+  componentDidCatch(error: Error, info: React.ErrorInfo) {
     if (process.env.NODE_ENV !== "production") {
-      // keep console output for local dev only
       console.error(error, info);
     }
   }
@@ -117,9 +120,7 @@ export default class FriendlyErrorBoundary extends React.Component<
               {showReport && supportEmail && (
                 <Button
                   component="a"
-                  href={`mailto:${supportEmail}?subject=${encodeURIComponent(
-                    "App error report"
-                  )}`}
+                  onClick={this.handleReport}
                   variant="outlined"
                 >
                   Contact support
@@ -141,4 +142,13 @@ export default class FriendlyErrorBoundary extends React.Component<
       </Box>
     );
   }
+}
+
+export default function FriendlyErrorBoundary(props: Omit<Props, "location">) {
+  const location = useLocation();
+  return (
+    <FriendlyErrorBoundaryClass {...props} location={location}>
+      {props.children}
+    </FriendlyErrorBoundaryClass>
+  );
 }

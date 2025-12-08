@@ -1,0 +1,82 @@
+{
+  "routes": [
+    {
+      "route": "/login",
+      "rewrite": "/index.html",
+      "headers": {
+        "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
+        "Content-Security-Policy": "default-src 'none'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https://cdn.flowcart.example.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://api.flowcart.example.com wss://socket.flowcart.example.com; object-src 'none'; frame-ancestors 'none'; upgrade-insecure-requests;"
+      }
+    },
+    {
+      "route": "/checkout",
+      "rewrite": "/index.html",
+      "headers": {
+        "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
+        "Content-Security-Policy": "default-src 'none'; script-src 'self' https://js.stripe.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https://cdn.flowcart.example.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://api.flowcart.example.com https://payments.example.com wss://socket.flowcart.example.com; object-src 'none'; frame-ancestors 'none';"
+      }
+    },
+
+    {
+      "route": "/api/*",
+      "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+      "headers": {
+        "Access-Control-Allow-Origin": "http://localhost:5173",
+        "Access-Control-Allow-Methods": "GET,POST,PUT,DELETE,OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Requested-With",
+        "Cache-Control": "no-store"
+      }
+    },
+
+    {
+      "route": "/uploads/*",
+      "headers": {
+        "Cache-Control": "public, max-age=86400",
+        "Content-Security-Policy": "default-src 'self'; img-src 'self' data: https://cdn.flowcart.example.com; object-src 'none';"
+      }
+    },
+
+    {
+      "route": "/admin*",
+      "rewrite": "/index.html",
+      "allowedRoles": ["authenticated"]
+    }
+  ],
+
+  "navigationFallback": {
+    "rewrite": "/index.html",
+    "exclude": [
+      "/assets/*",
+      "/images/*",
+      "/api/*",
+      "/uploads/*",
+      "/favicon.ico",
+      "/manifest.webmanifest"
+    ]
+  },
+
+  "responseOverrides": {
+    "401": {
+      "statusCode": 302,
+      "redirect": "/.auth/login/github"
+    },
+    "404": {
+      "rewrite": "/404.html"
+    }
+  },
+
+  "globalHeaders": {
+    "X-Frame-Options": "SAMEORIGIN",
+    "X-Content-Type-Options": "nosniff",
+    "Referrer-Policy": "no-referrer-when-downgrade"
+  },
+
+  "mimeTypes": {
+    ".webmanifest": "application/manifest+json",
+    ".woff2": "font/woff2"
+  },
+
+  "platform": {
+    "apiRuntime": "node:20"
+  }
+}
