@@ -16,7 +16,6 @@
         "Content-Security-Policy": "default-src 'none'; script-src 'self' https://js.stripe.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https://cdn.flowcart.example.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://api.flowcart.example.com https://payments.example.com wss://socket.flowcart.example.com; object-src 'none'; frame-ancestors 'none';"
       }
     },
-
     {
       "route": "/api/*",
       "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],

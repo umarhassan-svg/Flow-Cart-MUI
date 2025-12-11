@@ -11,6 +11,9 @@ import {
   TableHead,
   TableRow,
   Chip,
+  Button,
+  Link,
+  Stack,
 } from "@mui/material";
 
 // Icons
@@ -111,20 +114,31 @@ export const AdminDashboard = () => {
           <Grid container spacing={3}>
             {/* 1. HEADER */}
             <Grid size={{ xs: 12 }}>
-              <Typography
-                variant="h5"
-                fontWeight="bold"
-                sx={{
-                  fontSize: {
-                    xs: "1.25rem", // extra-small screens (mobile)
-                    sm: "1.5rem", // small screens
-                    md: "1.75rem", // medium screens
-                    lg: "2rem", // large screens
-                  },
-                }}
+              <Stack
+                direction="row"
+                justifyContent="space-between"
+                alignItems="center"
               >
-                DashBoard Overview
-              </Typography>
+                <Typography
+                  variant="h5"
+                  fontWeight="bold"
+                  sx={{
+                    fontSize: {
+                      xs: "1.25rem", // extra-small screens (mobile)
+                      sm: "1.5rem", // small screens
+                      md: "1.75rem", // medium screens
+                      lg: "2rem", // large screens
+                    },
+                  }}
+                >
+                  DashBoard Overview
+                </Typography>
+                <Button variant="contained" color="primary">
+                  <Link sx={{ color: "white" }} href="/admin/dashboard-builder">
+                    Dashboard Builder
+                  </Link>
+                </Button>
+              </Stack>
             </Grid>
 
             {/* 2. TOP CARDS ROW */}

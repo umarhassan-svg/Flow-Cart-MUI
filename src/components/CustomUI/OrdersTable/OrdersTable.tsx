@@ -5,9 +5,9 @@ import type { ChangeEvent } from "react";
 import type { Order } from "../../../types/Order";
 import CustomTable from "../../CustomUI/CustomTable/CustomTable";
 import type { Column } from "../../../types/TableColumn";
-import "./orderstable.css";
 import { useAuth } from "../../../context/AuthContext";
 import { FaEdit, FaTrash, FaEye, FaTimes, FaCheck } from "react-icons/fa";
+import "./orderstable.css";
 
 export interface OrdersTableProps {
   orders: Order[];

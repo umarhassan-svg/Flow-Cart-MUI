@@ -57,6 +57,7 @@ const LayoutMain = ({ children }: { children: React.ReactNode }) => {
           display: "flex",
           justifyContent: "center",
           width: "100%",
+          height: "100%",
           px: 0,
           py: { xs: 2, sm: 3, md: 4 },
           // Use pixel strings so MUI does not interpret numeric spacing units
@@ -69,12 +70,12 @@ const LayoutMain = ({ children }: { children: React.ReactNode }) => {
             width: "100%",
             maxWidth: { xs: "100%", sm: 920, md: 1080, lg: 1200 },
             mx: "auto",
+            height: "100%",
             minWidth: 0,
             overflowX: "hidden",
           }}
         >
           <Box sx={innerSx}>{children}</Box>
-          <Box sx={{ height: { xs: 16, sm: 24 } }} />
         </Box>
       </Box>
 

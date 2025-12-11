@@ -11,6 +11,13 @@ import NotificationContainer from "../components/CustomUI/NotificationContainer/
 import { AdminDashboard } from "../pages/admin/Dashboard";
 import Loader from "../pages/LoadingPage.tsx";
 import ContactUsPage from "../pages/ContactUsPage.tsx";
+// import CustomizeableLayout from "../pages/CustomizeablePage.tsx";
+import DashboardBuilder from "../components/DashboardBuilder/DashboardBuilder.tsx";
+
+// Import table CSS files to ensure they load globally
+import "../components/CustomUI/OrdersTable/orderstable.css";
+import "../components/CustomUI/RolesTable/rolestable.css";
+import "../components/CustomUI/UsersTable/usertable.css";
 
 // --- Lazy load all pages ---
 const Login = lazy(() => import("../pages/Login"));
@@ -73,6 +80,14 @@ const router = createBrowserRouter([
       </FriendlyErrorBoundary>
     ),
     children: [
+      {
+        path: "/home",
+        element: (
+          <Suspense fallback={<Loader />}>
+            <Home />
+          </Suspense>
+        ),
+      },
       {
         path: "/profile",
         element: (
@@ -282,13 +297,21 @@ const router = createBrowserRouter([
         ),
       },
       {
+        path: "/admin/dashboard-builder",
+        element: (
+          <Suspense fallback={<Loader />}>
+            <DashboardBuilder />
+          </Suspense>
+        ),
+      },
+      {
         path: "/contact-us",
         element: (
           <Suspense fallback={<Loader />}>
             <ContactUsPage />
           </Suspense>
         ),
-      }
+      },
     ],
   },
 
