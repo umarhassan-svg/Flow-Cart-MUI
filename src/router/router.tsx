@@ -13,6 +13,7 @@ import Loader from "../pages/LoadingPage.tsx";
 import ContactUsPage from "../pages/ContactUsPage.tsx";
 // import CustomizeableLayout from "../pages/CustomizeablePage.tsx";
 import DashboardBuilder from "../components/DashboardBuilder/DashboardBuilder.tsx";
+import OrderTrackPage from "../pages/OrderTrackPage.tsx";
 
 // Import table CSS files to ensure they load globally
 import "../components/CustomUI/OrdersTable/orderstable.css";
@@ -166,6 +167,14 @@ const router = createBrowserRouter([
               <OrdersListPage />
             </Suspense>
           </PrivateRoute>
+        ),
+      },
+      {
+        path: "/track-order/:id",
+        element: (
+          <Suspense fallback={<Loader />}>
+            <OrderTrackPage />
+          </Suspense>
         ),
       },
       {

@@ -5,21 +5,22 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "dev:staging":"vite --mode staging",
-    "dev:local":"vite --mode local",
+    "dev:staging": "vite --mode staging",
+    "dev:local": "vite --mode local",
     "build": "tsc -b && vite build",
     "build:staging": "tsc -b && vite build --mode staging",
     "lint": "eslint .",
     "preview": "vite preview",
     "preview:staging": "vite preview --mode staging"
-
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
     "@mui/icons-material": "^7.3.5",
+    "@mui/lab": "^7.0.1-beta.20",
     "@mui/material": "^7.3.5",
     "@mui/x-charts": "^8.18.0",
+    "@react-google-maps/api": "^2.20.7",
     "@reduxjs/toolkit": "^2.11.0",
     "axios": "^1.13.2",
     "papaparse": "^5.5.3",

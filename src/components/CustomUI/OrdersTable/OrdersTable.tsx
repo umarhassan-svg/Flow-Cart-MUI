@@ -7,6 +7,8 @@ import CustomTable from "../../CustomUI/CustomTable/CustomTable";
 import type { Column } from "../../../types/TableColumn";
 import { useAuth } from "../../../context/AuthContext";
 import { FaEdit, FaTrash, FaEye, FaTimes, FaCheck } from "react-icons/fa";
+import { FaMapLocationDot } from "react-icons/fa6";
+
 import "./orderstable.css";
 
 export interface OrdersTableProps {
@@ -93,6 +95,19 @@ export default function OrdersTable({
       onClick: (o: Order) => void;
       icon?: React.ReactNode;
     }[] = [];
+
+    if (can("orders:read")) {
+      a.push({
+        key: "trackorder",
+        label: "Track Order",
+        variant: "default",
+        onClick: (o: Order) => {
+          const trackUrl = `/track-order/${o.id}`;
+          window.open(trackUrl, "_blank");
+        },
+        icon: <FaMapLocationDot />,
+      });
+    }
 
     if (can("orders:read")) {
       a.push({
