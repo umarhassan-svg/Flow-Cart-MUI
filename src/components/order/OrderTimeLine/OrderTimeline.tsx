@@ -23,7 +23,7 @@ interface OrderTimelineProps {
 
 const OrderTimeline: React.FC<OrderTimelineProps> = ({ orderId }) => {
   return (
-    <Paper elevation={3} sx={{ p: 3, height: "100%", overflowY: "auto" }}>
+    <Paper elevation={3} sx={{ p: 3, height: "100%", overflow: "hidden" }}>
       {/* 2. Added Order Details Header */}
       <Box sx={{ mb: 2 }}>
         <Box

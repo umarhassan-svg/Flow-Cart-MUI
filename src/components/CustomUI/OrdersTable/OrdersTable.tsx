@@ -10,6 +10,7 @@ import { FaEdit, FaTrash, FaEye, FaTimes, FaCheck } from "react-icons/fa";
 import { FaMapLocationDot } from "react-icons/fa6";
 
 import "./orderstable.css";
+import { useNavigate } from "react-router-dom";
 
 export interface OrdersTableProps {
   orders: Order[];
@@ -54,7 +55,7 @@ export default function OrdersTable({
   // local page state for CustomTable (1-based)
   const [_, setLocalPage] = useState<number>(Math.max(1, page + 1));
   const [localPageSize, setLocalPageSize] = useState<number>(rowsPerPage);
-
+  const navigate = useNavigate();
   // search state (debounced inside this component)
   const [searchTyping, setSearchTyping] = useState<string>("");
 
@@ -103,7 +104,7 @@ export default function OrdersTable({
         variant: "default",
         onClick: (o: Order) => {
           const trackUrl = `/track-order/${o.id}`;
-          window.open(trackUrl, "_blank");
+          navigate(trackUrl);
         },
         icon: <FaMapLocationDot />,
       });

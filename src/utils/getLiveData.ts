@@ -7,20 +7,6 @@ export type Position = {
   timestamp: number;
 };
 
-/**
- * getLiveData + startPollingLiveData using backend WebSocket at /ws/tracking
- *
- * Behavior:
- * - If a WS connection to the backend can be established, we subscribe:
- *     { type: "subscribe", vehicleId: orderId, connectionKey: "default", pollInterval: <ms> }
- *   and listen for messages of shape:
- *     { type: "position", position: { lat, lng, heading, timestamp }, vehicleId }
- *
- * - startPollingLiveData returns a cleanup function that will unsubscribe and close the socket.
- * - getLiveData does a one-shot subscribe, resolves with the first position, then closes the socket.
- *
- * If the WS path is unreachable, both functions fall back to the original mock generator.
- */
 
 const center = {
   lat: 33.6684722,
